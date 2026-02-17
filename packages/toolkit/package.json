@@ -1,0 +1,65 @@
+{
+  "name": "@telecom/toolkit",
+  "version": "1.0.0",
+  "description": "Shared toolkit for telecom platform microservices",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./kafka": {
+      "types": "./dist/kafka/index.d.ts",
+      "default": "./dist/kafka/index.js"
+    },
+    "./database": {
+      "types": "./dist/database/index.d.ts",
+      "default": "./dist/database/index.js"
+    },
+    "./saga": {
+      "types": "./dist/saga/index.d.ts",
+      "default": "./dist/saga/index.js"
+    },
+    "./grpc": {
+      "types": "./dist/grpc/index.d.ts",
+      "default": "./dist/grpc/index.js"
+    },
+    "./value-objects": {
+      "types": "./dist/value-objects/index.d.ts",
+      "default": "./dist/value-objects/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/microservices": "^11.0.0",
+    "@prisma/client": "^6.0.0",
+    "kafkajs": "^2.2.4",
+    "@grpc/grpc-js": "^1.12.0",
+    "uuid": "^11.0.0",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "peerDependencies": {
+    "@prisma/client": ">=5.0.0"
+  }
+}

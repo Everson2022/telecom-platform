@@ -1,0 +1,15 @@
+{
+  "name": "telecom-platform",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Telecom platform based on TM Forum ODA",
+  "scripts": {
+    "build:toolkit": "pnpm --filter @telecom/toolkit build",
+    "test:toolkit": "pnpm --filter @telecom/toolkit test",
+    "lint:toolkit": "pnpm --filter @telecom/toolkit lint"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
