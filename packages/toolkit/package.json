@@ -30,6 +30,15 @@
       "default": "./dist/value-objects/index.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      "kafka": ["./dist/kafka/index.d.ts"],
+      "database": ["./dist/database/index.d.ts"],
+      "saga": ["./dist/saga/index.d.ts"],
+      "grpc": ["./dist/grpc/index.d.ts"],
+      "value-objects": ["./dist/value-objects/index.d.ts"]
+    }
+  },
   "files": [
     "dist"
   ],

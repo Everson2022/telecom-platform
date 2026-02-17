@@ -1,10 +1,13 @@
 import { Logger } from '@nestjs/common';
 
-export type PrismaTransaction = {
-  $executeRaw: (...args: any[]) => Promise<number>;
-  $queryRaw: (...args: any[]) => Promise<any>;
-  [key: string]: any;
-};
+export interface PrismaTransaction {
+  outboxEvent: {
+    create(args: { data: Record<string, unknown> }): Promise<unknown>;
+  };
+  $executeRaw: (...args: unknown[]) => Promise<number>;
+  $queryRaw: <T = unknown>(...args: unknown[]) => Promise<T>;
+  [key: string]: unknown;
+}
 
 export type PrismaClient = PrismaTransaction & {
   $transaction: <T>(fn: (tx: PrismaTransaction) => Promise<T>) => Promise<T>;

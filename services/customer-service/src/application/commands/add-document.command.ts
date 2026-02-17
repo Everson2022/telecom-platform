@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { CustomerDocument } from '@prisma/client';
 import { OutboxRepository } from '@telecom/toolkit';
 import { v4 as uuidv4 } from 'uuid';
-import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { CustomerRepository } from '../../infrastructure/database/repositories/customer.repository';
 import { CUSTOMER_EVENTS } from '../../domain/events/customer-events';
 import { CreateDocumentDto } from '../../presentation/dto/create-document.dto';
@@ -15,7 +16,7 @@ export class AddDocumentCommand {
     private readonly customerRepo: CustomerRepository,
   ) {}
 
-  async execute(customerId: string, dto: CreateDocumentDto) {
+  async execute(customerId: string, dto: CreateDocumentDto): Promise<CustomerDocument> {
     const exists = await this.customerRepo.exists(customerId);
     if (!exists) {
       throw new NotFoundException(`Customer ${customerId} not found`);
@@ -23,8 +24,8 @@ export class AddDocumentCommand {
 
     const documentId = uuidv4();
 
-    return this.prisma.$transaction(async (tx) => {
-      const document = await (tx as any).customerDocument.create({
+    return this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+      const document = await tx.customerDocument.create({
         data: {
           id: documentId,
           customerId,
@@ -36,7 +37,7 @@ export class AddDocumentCommand {
         },
       });
 
-      await this.outboxRepo.create(tx as any, {
+      await this.outboxRepo.create(tx, {
         aggregateId: customerId,
         aggregateType: 'Customer',
         eventType: CUSTOMER_EVENTS.DOCUMENT_ADDED,

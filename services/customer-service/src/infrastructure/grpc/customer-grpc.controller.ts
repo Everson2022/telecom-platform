@@ -2,37 +2,65 @@ import { Controller, UseInterceptors } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { GrpcLoggingInterceptor, GrpcErrorMappingInterceptor, GrpcError } from '@telecom/toolkit';
 import { status as GrpcStatus } from '@grpc/grpc-js';
+import { GetCustomerQuery } from '../../application/queries/get-customer.query';
 import { CustomerRepository } from '../database/repositories/customer.repository';
 import { AddressRepository } from '../database/repositories/address.repository';
+import { CustomerWithRelations } from '../../domain/types';
+import { CustomerAddress } from '@prisma/client';
+
+interface CustomerGrpcResponse {
+  customerId: string;
+  fullName: string;
+  cpf: string;
+  email: string;
+  phone: string;
+  status: string;
+  birthDate: string;
+}
+
+interface AddressGrpcResponse {
+  addressId: string;
+  type: string;
+  zipCode: string;
+  street: string;
+  number: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  dddCode: string;
+  country: string;
+  isDefault: boolean;
+}
 
 @Controller()
 @UseInterceptors(GrpcLoggingInterceptor, GrpcErrorMappingInterceptor)
 export class CustomerGrpcController {
   constructor(
+    private readonly getCustomerQuery: GetCustomerQuery,
     private readonly customerRepo: CustomerRepository,
     private readonly addressRepo: AddressRepository,
   ) {}
 
   @GrpcMethod('CustomerQueryService', 'GetCustomerById')
-  async getCustomerById(data: { customerId: string }) {
-    const customer = await this.customerRepo.findById(data.customerId);
-    if (!customer) {
-      throw new GrpcError(GrpcStatus.NOT_FOUND, `Customer ${data.customerId} not found`);
-    }
+  async getCustomerById(data: { customerId: string }): Promise<CustomerGrpcResponse> {
+    const customer = await this.getCustomerQuery.byId(data.customerId);
     return this.mapToResponse(customer);
   }
 
   @GrpcMethod('CustomerQueryService', 'GetCustomerByCpf')
-  async getCustomerByCpf(data: { cpf: string }) {
-    const customer = await this.customerRepo.findByCpf(data.cpf);
-    if (!customer) {
-      throw new GrpcError(GrpcStatus.NOT_FOUND, `Customer with CPF ${data.cpf} not found`);
-    }
+  async getCustomerByCpf(data: { cpf: string }): Promise<CustomerGrpcResponse> {
+    const customer = await this.getCustomerQuery.byCpf(data.cpf);
     return this.mapToResponse(customer);
   }
 
   @GrpcMethod('CustomerQueryService', 'ValidateCustomerExists')
-  async validateCustomerExists(data: { customerId: string }) {
+  async validateCustomerExists(data: { customerId: string }): Promise<{
+    exists: boolean;
+    isActive: boolean;
+    customerId?: string;
+    fullName?: string;
+  }> {
     const exists = await this.customerRepo.exists(data.customerId);
     if (!exists) {
       return { exists: false, isActive: false };
@@ -47,14 +75,14 @@ export class CustomerGrpcController {
   }
 
   @GrpcMethod('CustomerQueryService', 'GetCustomerAddresses')
-  async getCustomerAddresses(data: { customerId: string }) {
+  async getCustomerAddresses(data: { customerId: string }): Promise<{ addresses: AddressGrpcResponse[] }> {
     const exists = await this.customerRepo.exists(data.customerId);
     if (!exists) {
       throw new GrpcError(GrpcStatus.NOT_FOUND, `Customer ${data.customerId} not found`);
     }
     const addresses = await this.addressRepo.findByCustomerId(data.customerId);
     return {
-      addresses: addresses.map((addr) => ({
+      addresses: addresses.map((addr: CustomerAddress) => ({
         addressId: addr.id,
         type: addr.type,
         zipCode: addr.zipCode,
@@ -71,7 +99,7 @@ export class CustomerGrpcController {
     };
   }
 
-  private mapToResponse(customer: any) {
+  private mapToResponse(customer: CustomerWithRelations): CustomerGrpcResponse {
     return {
       customerId: customer.id,
       fullName: customer.fullName,

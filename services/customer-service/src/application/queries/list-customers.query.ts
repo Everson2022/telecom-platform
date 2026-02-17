@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { CustomerStatus } from '@prisma/client';
+import { CustomerStatus, Prisma } from '@prisma/client';
 import { CustomerRepository } from '../../infrastructure/database/repositories/customer.repository';
+import { CustomerWithRelations } from '../../domain/types';
 
 export interface ListCustomersParams {
   page?: number;
@@ -9,16 +10,26 @@ export interface ListCustomersParams {
   search?: string;
 }
 
+export interface PaginatedCustomers {
+  data: CustomerWithRelations[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+}
+
 @Injectable()
 export class ListCustomersQuery {
   constructor(private readonly customerRepo: CustomerRepository) {}
 
-  async execute(params: ListCustomersParams) {
+  async execute(params: ListCustomersParams): Promise<PaginatedCustomers> {
     const page = params.page ?? 1;
     const pageSize = Math.min(params.pageSize ?? 20, 100);
     const skip = (page - 1) * pageSize;
 
-    const where: any = {};
+    const where: Prisma.CustomerWhereInput = {};
     if (params.status) {
       where.status = params.status;
     }

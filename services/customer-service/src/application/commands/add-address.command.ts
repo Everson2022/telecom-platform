@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { CustomerAddress } from '@prisma/client';
 import { OutboxRepository } from '@telecom/toolkit';
 import { v4 as uuidv4 } from 'uuid';
-import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { CustomerRepository } from '../../infrastructure/database/repositories/customer.repository';
 import { CUSTOMER_EVENTS } from '../../domain/events/customer-events';
 import { CreateAddressDto } from '../../presentation/dto/create-address.dto';
@@ -15,7 +16,7 @@ export class AddAddressCommand {
     private readonly customerRepo: CustomerRepository,
   ) {}
 
-  async execute(customerId: string, dto: CreateAddressDto) {
+  async execute(customerId: string, dto: CreateAddressDto): Promise<CustomerAddress> {
     const exists = await this.customerRepo.exists(customerId);
     if (!exists) {
       throw new NotFoundException(`Customer ${customerId} not found`);
@@ -23,8 +24,8 @@ export class AddAddressCommand {
 
     const addressId = uuidv4();
 
-    return this.prisma.$transaction(async (tx) => {
-      const address = await (tx as any).customerAddress.create({
+    return this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+      const address = await tx.customerAddress.create({
         data: {
           id: addressId,
           customerId,
@@ -42,7 +43,7 @@ export class AddAddressCommand {
         },
       });
 
-      await this.outboxRepo.create(tx as any, {
+      await this.outboxRepo.create(tx, {
         aggregateId: customerId,
         aggregateType: 'Customer',
         eventType: CUSTOMER_EVENTS.ADDRESS_ADDED,

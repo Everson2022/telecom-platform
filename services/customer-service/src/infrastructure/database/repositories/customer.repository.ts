@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Customer, Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
+import { PrismaService, PrismaTransactionClient } from '../prisma.service';
+import { CustomerWithRelations } from '../../../domain/types';
 
 @Injectable()
 export class CustomerRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Prisma.CustomerCreateInput, tx?: any): Promise<Customer> {
+  async create(data: Prisma.CustomerCreateInput, tx?: PrismaTransactionClient): Promise<Customer> {
     const client = tx ?? this.prisma;
     return client.customer.create({ data });
   }
 
-  async findById(id: string, tx?: any) {
+  async findById(id: string, tx?: PrismaTransactionClient): Promise<CustomerWithRelations | null> {
     const client = tx ?? this.prisma;
     return client.customer.findUnique({
       where: { id },
@@ -19,21 +20,21 @@ export class CustomerRepository {
     });
   }
 
-  async findByCpf(cpf: string) {
+  async findByCpf(cpf: string): Promise<CustomerWithRelations | null> {
     return this.prisma.customer.findUnique({
       where: { cpf },
       include: { documents: true, addresses: true },
     });
   }
 
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<CustomerWithRelations | null> {
     return this.prisma.customer.findUnique({
       where: { email },
       include: { documents: true, addresses: true },
     });
   }
 
-  async update(id: string, data: Prisma.CustomerUpdateInput, tx?: any): Promise<Customer> {
+  async update(id: string, data: Prisma.CustomerUpdateInput, tx?: PrismaTransactionClient): Promise<Customer> {
     const client = tx ?? this.prisma;
     return client.customer.update({ where: { id }, data });
   }
@@ -43,7 +44,7 @@ export class CustomerRepository {
     take?: number;
     where?: Prisma.CustomerWhereInput;
     orderBy?: Prisma.CustomerOrderByWithRelationInput;
-  }) {
+  }): Promise<{ data: CustomerWithRelations[]; total: number }> {
     const { skip, take, where, orderBy } = params;
     const [data, total] = await Promise.all([
       this.prisma.customer.findMany({

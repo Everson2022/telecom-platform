@@ -10,10 +10,39 @@ export interface CreateOutboxEventParams {
   causationId?: string;
 }
 
+export interface OutboxEventRecord {
+  id: string;
+  aggregateId: string;
+  aggregateType: string;
+  eventType: string;
+  payload: unknown;
+  correlationId: string | null;
+  causationId: string | null;
+  status: string;
+  retryCount: number;
+  createdAt: Date;
+  publishedAt: Date | null;
+}
+
+export interface OutboxPrismaClient {
+  outboxEvent: {
+    create(args: { data: Record<string, unknown> }): Promise<unknown>;
+    findMany(args: {
+      where: Record<string, unknown>;
+      orderBy: Record<string, unknown>;
+      take: number;
+    }): Promise<OutboxEventRecord[]>;
+    update(args: {
+      where: { id: string };
+      data: Record<string, unknown>;
+    }): Promise<unknown>;
+  };
+}
+
 export class OutboxRepository {
   async create(tx: PrismaTransaction, params: CreateOutboxEventParams): Promise<string> {
     const id = uuidv4();
-    await (tx as any).outboxEvent.create({
+    await tx.outboxEvent.create({
       data: {
         id,
         aggregateId: params.aggregateId,
@@ -29,7 +58,7 @@ export class OutboxRepository {
     return id;
   }
 
-  async findPending(prisma: any, batchSize: number) {
+  async findPending(prisma: OutboxPrismaClient, batchSize: number): Promise<OutboxEventRecord[]> {
     return prisma.outboxEvent.findMany({
       where: { status: 'PENDING' },
       orderBy: { createdAt: 'asc' },
@@ -37,7 +66,7 @@ export class OutboxRepository {
     });
   }
 
-  async markAsPublished(prisma: any, id: string): Promise<void> {
+  async markAsPublished(prisma: OutboxPrismaClient, id: string): Promise<void> {
     await prisma.outboxEvent.update({
       where: { id },
       data: {
@@ -47,7 +76,7 @@ export class OutboxRepository {
     });
   }
 
-  async incrementRetry(prisma: any, id: string): Promise<void> {
+  async incrementRetry(prisma: OutboxPrismaClient, id: string): Promise<void> {
     await prisma.outboxEvent.update({
       where: { id },
       data: {
@@ -56,7 +85,7 @@ export class OutboxRepository {
     });
   }
 
-  async markAsFailed(prisma: any, id: string): Promise<void> {
+  async markAsFailed(prisma: OutboxPrismaClient, id: string): Promise<void> {
     await prisma.outboxEvent.update({
       where: { id },
       data: { status: 'FAILED' },

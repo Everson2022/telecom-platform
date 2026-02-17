@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { OutboxRepository } from '@telecom/toolkit';
 import { CustomerStatus } from '@prisma/client';
-import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { CustomerRepository } from '../../infrastructure/database/repositories/customer.repository';
 import { CUSTOMER_EVENTS } from '../../domain/events/customer-events';
+import { CustomerWithRelations } from '../../domain/types';
 
 const STATUS_TRANSITIONS: Record<CustomerStatus, CustomerStatus[]> = {
   ACTIVE: ['SUSPENDED', 'CANCELLED'],
@@ -27,7 +28,7 @@ export class ChangeStatusCommand {
     private readonly customerRepo: CustomerRepository,
   ) {}
 
-  async execute(customerId: string, newStatus: CustomerStatus) {
+  async execute(customerId: string, newStatus: CustomerStatus): Promise<CustomerWithRelations> {
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
       throw new NotFoundException(`Customer ${customerId} not found`);
@@ -42,14 +43,14 @@ export class ChangeStatusCommand {
 
     const eventType = STATUS_EVENT_MAP[`${customer.status}->${newStatus}`];
 
-    return this.prisma.$transaction(async (tx) => {
-      const updated = await (tx as any).customer.update({
+    return this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+      const updated = await tx.customer.update({
         where: { id: customerId },
         data: { status: newStatus },
         include: { documents: true, addresses: true },
       });
 
-      await this.outboxRepo.create(tx as any, {
+      await this.outboxRepo.create(tx, {
         aggregateId: customerId,
         aggregateType: 'Customer',
         eventType,

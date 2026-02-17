@@ -1,7 +1,7 @@
 import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
 import { CPF, Email, PhoneNumber, OutboxRepository } from '@telecom/toolkit';
 import { v4 as uuidv4 } from 'uuid';
-import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { CustomerRepository } from '../../infrastructure/database/repositories/customer.repository';
 import { CUSTOMER_EVENTS } from '../../domain/events/customer-events';
 import { CreateCustomerDto } from '../../presentation/dto/create-customer.dto';
@@ -45,8 +45,8 @@ export class RegisterCustomerCommand {
 
     const customerId = uuidv4();
 
-    await this.prisma.$transaction(async (tx) => {
-      await (tx as any).customer.create({
+    await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+      await tx.customer.create({
         data: {
           id: customerId,
           fullName: dto.fullName,
@@ -59,7 +59,7 @@ export class RegisterCustomerCommand {
       });
 
       for (const doc of dto.documents) {
-        await (tx as any).customerDocument.create({
+        await tx.customerDocument.create({
           data: {
             id: uuidv4(),
             customerId,
@@ -73,7 +73,7 @@ export class RegisterCustomerCommand {
       }
 
       for (const addr of dto.addresses) {
-        await (tx as any).customerAddress.create({
+        await tx.customerAddress.create({
           data: {
             id: uuidv4(),
             customerId,
@@ -92,7 +92,7 @@ export class RegisterCustomerCommand {
         });
       }
 
-      await this.outboxRepo.create(tx as any, {
+      await this.outboxRepo.create(tx, {
         aggregateId: customerId,
         aggregateType: 'Customer',
         eventType: CUSTOMER_EVENTS.REGISTERED,

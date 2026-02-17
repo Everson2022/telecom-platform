@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { Email, PhoneNumber, OutboxRepository } from '@telecom/toolkit';
-import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { CustomerRepository } from '../../infrastructure/database/repositories/customer.repository';
 import { CUSTOMER_EVENTS } from '../../domain/events/customer-events';
 import { UpdateCustomerDto } from '../../presentation/dto/update-customer.dto';
+import { CustomerWithRelations } from '../../domain/types';
 
 @Injectable()
 export class UpdateCustomerCommand {
@@ -14,13 +16,13 @@ export class UpdateCustomerCommand {
     private readonly customerRepo: CustomerRepository,
   ) {}
 
-  async execute(customerId: string, dto: UpdateCustomerDto) {
+  async execute(customerId: string, dto: UpdateCustomerDto): Promise<CustomerWithRelations> {
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
       throw new NotFoundException(`Customer ${customerId} not found`);
     }
 
-    const updateData: Record<string, any> = {};
+    const updateData: Prisma.CustomerUpdateInput = {};
     const changes: Record<string, unknown> = {};
 
     if (dto.fullName) {
@@ -49,14 +51,14 @@ export class UpdateCustomerCommand {
       return customer;
     }
 
-    return this.prisma.$transaction(async (tx) => {
-      const updated = await (tx as any).customer.update({
+    return this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+      const updated = await tx.customer.update({
         where: { id: customerId },
         data: updateData,
         include: { documents: true, addresses: true },
       });
 
-      await this.outboxRepo.create(tx as any, {
+      await this.outboxRepo.create(tx, {
         aggregateId: customerId,
         aggregateType: 'Customer',
         eventType: CUSTOMER_EVENTS.UPDATED,
