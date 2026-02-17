@@ -21,22 +21,26 @@ Plataforma de microsservicos para operadora de telefonia movel (ou MVNO) brasile
 ```
 telecom-platform/
 ├── packages/
-│   ├── toolkit/          # @telecom/toolkit — pacote compartilhado
-│   └── proto/            # Definicoes Protocol Buffers (futuro)
-├── services/             # Microsservicos (futuro)
-│   ├── customer-service/
-│   ├── catalog-service/
-│   ├── order-service/
-│   ├── payment-service/
-│   ├── sim-management-service/
-│   ├── activation-service/
-│   ├── service-inventory/
-│   ├── billing-service/
-│   ├── logistics-service/
-│   └── locality-service/
-├── docs/PRD.md           # Documento de requisitos completo
-├── pnpm-workspace.yaml
-└── docker-compose.yml    # (futuro)
+│   ├── toolkit/              # @telecom/toolkit — pacote compartilhado
+│   └── proto/                # Definicoes Protocol Buffers (futuro)
+├── services/
+│   ├── customer-service/     # Party Management (TMF632/629) — IMPLEMENTADO
+│   ├── catalog-service/      # (futuro)
+│   ├── order-service/        # (futuro)
+│   ├── payment-service/      # (futuro)
+│   ├── sim-management-service/ # (futuro)
+│   ├── activation-service/   # (futuro)
+│   ├── service-inventory/    # (futuro)
+│   ├── billing-service/      # (futuro)
+│   ├── logistics-service/    # (futuro)
+│   └── locality-service/     # (futuro)
+├── docker/
+│   └── init-databases.sql    # Cria bancos de todos os servicos
+├── docs/
+│   ├── PRD-001-plataforma-telecom.md
+│   └── PRD-002-health-graceful-shutdown.md
+├── docker-compose.yml        # PostgreSQL 16 + Kafka 3.8 + Kafka UI
+└── pnpm-workspace.yaml
 ```
 
 ## Comandos Principais
@@ -50,10 +54,21 @@ pnpm --filter @telecom/toolkit build     # Compila para dist/
 pnpm --filter @telecom/toolkit test      # Roda testes (Vitest)
 pnpm --filter @telecom/toolkit dev       # Watch mode
 
-# Servico especifico (quando existirem)
+# Customer Service
+pnpm --filter customer-service build     # Compila NestJS
+pnpm --filter customer-service test      # Roda testes (Vitest)
+pnpm --filter customer-service dev       # Watch mode
+pnpm --filter customer-service prisma:generate  # Gera Prisma Client
+pnpm --filter customer-service prisma:migrate   # Roda migracoes
+
+# Servico generico
 pnpm --filter <service-name> build
 pnpm --filter <service-name> test
 pnpm --filter <service-name> dev
+
+# Docker (infraestrutura local)
+docker compose up -d                     # Sobe PostgreSQL + Kafka + Kafka UI
+docker compose down                      # Para tudo
 ```
 
 ## Toolkit (@telecom/toolkit)
@@ -113,16 +128,64 @@ interface DomainEvent<T = unknown> {
 | Proto package | lowercase | `customer`, `common` |
 | Proto service | PascalCase + QueryService | `CustomerQueryService` |
 
+## Customer Service
+
+Primeiro microsservico implementado. Gerencia cadastro de clientes, documentos e enderecos.
+
+### Endpoints REST (Swagger em `/api/docs`)
+
+| Metodo | Rota | Descricao |
+|---|---|---|
+| POST | /customers | Cadastra novo cliente |
+| GET | /customers/:id | Busca cliente por ID |
+| GET | /customers | Lista clientes (paginado) |
+| PATCH | /customers/:id | Atualiza dados do cliente |
+| POST | /customers/:id/suspend | Suspende cliente |
+| POST | /customers/:id/reactivate | Reativa cliente |
+| POST | /customers/:id/cancel | Cancela cliente |
+| POST | /customers/:id/documents | Adiciona documento |
+| PATCH | /customers/:id/documents/:docId/verify | Verifica documento |
+| POST | /customers/:id/addresses | Adiciona endereco |
+
+### gRPC (porta 50051)
+
+- GetCustomerById, GetCustomerByCpf, ValidateCustomerExists, GetCustomerAddresses
+
+### Portas padrao
+
+| Servico | Porta |
+|---|---|
+| REST API | 3001 |
+| gRPC | 50051 |
+| PostgreSQL | 5432 |
+| Kafka (externo) | 29092 |
+| Kafka UI | 8080 |
+
+## Infraestrutura Local (Docker)
+
+- **PostgreSQL 16 Alpine** — um banco por servico (criados via `docker/init-databases.sql`)
+- **Apache Kafka 3.8** — KRaft mode (sem Zookeeper), porta externa 29092
+- **Kafka UI** — acessivel em `http://localhost:8080`
+
+## Padroes de Servico
+
+- Cada servico tem `.env.example` com as variaveis de ambiente necessarias
+- Config centralizada em `src/config/env.config.ts` com defaults para dev local
+- Prisma schema em `prisma/schema.prisma` com tabelas de Outbox e ProcessedEvents
+- Arquitetura DDD: domain/ → application/ → infrastructure/ → presentation/
+
 ## Regras para Desenvolvimento
 
 - Cada microsservico = 1 Bounded Context com banco proprio
 - Nunca usar gRPC para alterar estado — apenas Kafka
 - Testes com Vitest (>= 80% cobertura)
-- Arquivos de teste: `*.spec.ts` ao lado do arquivo fonte
+- Arquivos de teste: `*.spec.ts` ao lado do arquivo fonte ou em `test/`
 - Value Objects sao imutaveis (metodos retornam nova instancia)
 - Money sempre em centavos (inteiro), nunca float
 - CPF sempre validado algoritmicamente
+- PRDs seguem nomenclatura `PRD-NNN-descricao.md`
 
 ## Referencia
 
-- PRD completo com todos os fluxos, sagas e schemas: `docs/PRD.md`
+- PRD principal: `docs/PRD-001-plataforma-telecom.md`
+- PRD health/graceful shutdown: `docs/PRD-002-health-graceful-shutdown.md`
