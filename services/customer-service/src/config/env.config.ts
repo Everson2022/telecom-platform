@@ -5,7 +5,7 @@ export const envConfig = {
   },
   kafka: {
     clientId: 'customer-service',
-    brokers: (process.env.KAFKA_BROKERS ?? 'localhost:9092').split(','),
+    brokers: (process.env.KAFKA_BROKERS ?? 'localhost:29092').split(','),
     groupId: 'customer-service',
   },
   grpc: {
