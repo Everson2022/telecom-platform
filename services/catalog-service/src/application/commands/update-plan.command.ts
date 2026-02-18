@@ -25,7 +25,7 @@ export class UpdatePlanCommand {
       throw new PlanNotFoundException(id);
     }
 
-    if ((plan.status as PlanStatus) !== 'ACTIVE') {
+    if ((plan.status as PlanStatus) !== PlanStatus.ACTIVE) {
       throw new PlanNotActiveException('Only ACTIVE plans can be updated');
     }
 

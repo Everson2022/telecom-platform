@@ -23,14 +23,14 @@ export class DeprecatePlanCommand {
     }
 
     const status = plan.status as PlanStatus;
-    if (status !== 'ACTIVE' && status !== 'INACTIVE') {
+    if (status !== PlanStatus.ACTIVE && status !== PlanStatus.INACTIVE) {
       throw new PlanCannotBeDeprecatedException();
     }
 
     await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
       await tx.plan.update({
         where: { id },
-        data: { status: 'DEPRECATED' },
+        data: { status: PlanStatus.DEPRECATED },
       });
 
       await this.outboxRepo.create(tx, {

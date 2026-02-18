@@ -5,6 +5,7 @@ import { PrismaService, PrismaTransactionClient } from '../../infrastructure/dat
 import { OfferRepository } from '../../infrastructure/database/repositories/offer.repository';
 import { CATALOG_EVENTS } from '../../domain/events/catalog-events';
 import { OfferWithRelations } from '../../domain/types';
+import { OfferStatus } from '../../domain/enums';
 
 @Injectable()
 export class DeactivateOfferCommand {
@@ -21,14 +22,14 @@ export class DeactivateOfferCommand {
       throw new OfferNotFoundException(id);
     }
 
-    if (offer.status !== 'ACTIVE') {
+    if (offer.status !== OfferStatus.ACTIVE) {
       throw new OfferNotActiveException('Only ACTIVE offers can be deactivated');
     }
 
     await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
       await tx.offer.update({
         where: { id },
-        data: { status: 'INACTIVE' },
+        data: { status: OfferStatus.INACTIVE },
       });
 
       await this.outboxRepo.create(tx, {

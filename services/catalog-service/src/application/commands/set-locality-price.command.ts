@@ -6,6 +6,7 @@ import { PrismaService, PrismaTransactionClient } from '../../infrastructure/dat
 import { OfferRepository } from '../../infrastructure/database/repositories/offer.repository';
 import { CATALOG_EVENTS } from '../../domain/events/catalog-events';
 import { SetLocalityPriceDto } from '../../presentation/dto/set-locality-price.dto';
+import { OfferStatus, PriceLocalityStatus } from '../../domain/enums';
 
 export interface SetLocalityPriceResult {
   offerId: string;
@@ -29,7 +30,7 @@ export class SetLocalityPriceCommand {
       throw new OfferNotFoundException(offerId);
     }
 
-    if (offer.status !== 'ACTIVE') {
+    if (offer.status !== OfferStatus.ACTIVE) {
       throw new OfferNotActiveException('Only ACTIVE offers can have prices set');
     }
 
@@ -47,7 +48,7 @@ export class SetLocalityPriceCommand {
           data: {
             priceAmountCents: dto.priceAmountCents,
             priceCurrency: dto.priceCurrency ?? 'BRL',
-            status: 'ACTIVE',
+            status: PriceLocalityStatus.ACTIVE,
           },
         });
       } else {
@@ -59,7 +60,7 @@ export class SetLocalityPriceCommand {
             city,
             priceAmountCents: dto.priceAmountCents,
             priceCurrency: dto.priceCurrency ?? 'BRL',
-            status: 'ACTIVE',
+            status: PriceLocalityStatus.ACTIVE,
           },
         });
       }

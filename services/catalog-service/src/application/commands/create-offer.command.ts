@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PlanNotFoundException, PlanNotActiveException } from '../../errors';
 import { Prisma } from '@prisma/client';
+import { PlanStatus, OfferStatus } from '../../domain/enums';
 import { v4 as uuidv4 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
@@ -22,7 +23,7 @@ export class CreateOfferCommand {
     if (!plan) {
       throw new PlanNotFoundException(dto.planId);
     }
-    if (plan.status !== 'ACTIVE') {
+    if (plan.status !== PlanStatus.ACTIVE) {
       throw new PlanNotActiveException('Plan must be ACTIVE to create an offer');
     }
 
@@ -38,7 +39,7 @@ export class CreateOfferCommand {
           name: dto.name,
           basePriceAmountCents: dto.basePriceAmountCents,
           basePriceCurrency: dto.basePriceCurrency ?? 'BRL',
-          status: 'ACTIVE',
+          status: OfferStatus.ACTIVE,
           validFrom,
           validUntil: dto.validUntil ? new Date(dto.validUntil) : null,
         },

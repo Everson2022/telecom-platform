@@ -6,12 +6,12 @@ import { PrismaService, PrismaTransactionClient } from '../../infrastructure/dat
 import { PlanRepository } from '../../infrastructure/database/repositories/plan.repository';
 import { CATALOG_EVENTS } from '../../domain/events/catalog-events';
 import { CreatePlanDto } from '../../presentation/dto/create-plan.dto';
-import { PlanType } from '../../domain/enums';
+import { PlanType, PlanStatus } from '../../domain/enums';
 
-const MAX_LINES_BY_TYPE: Record<string, number> = {
-  CONTROL: 5,
-  PREPAID: 1,
-  POSTPAID: 1,
+const MAX_LINES_BY_TYPE: Record<PlanType, number> = {
+  [PlanType.CONTROL]: 5,
+  [PlanType.PREPAID]: 1,
+  [PlanType.POSTPAID]: 1,
 };
 
 @Injectable()
@@ -44,7 +44,7 @@ export class CreatePlanCommand {
           name: dto.name,
           type: dto.type,
           maxLines,
-          status: 'ACTIVE',
+          status: PlanStatus.ACTIVE,
           allowedPaymentMethods: dto.allowedPaymentMethods,
         },
       });
