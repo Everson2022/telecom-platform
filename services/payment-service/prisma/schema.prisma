@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Domain Enums ─────────────────────────────────────────
+
+enum PaymentMethodType {
+  CARD
+  PIX
+}
+
+enum PaymentMethodStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
+enum TransactionType {
+  ONE_TIME
+  RECURRING
+  REFUND
+  OVERDUE_RECOVERY
+}
+
+enum TransactionStatus {
+  PENDING
+  PROCESSING
+  APPROVED
+  DECLINED
+  REFUNDED
+  ERROR
+}
+
+enum RecurringStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
+// ─── Domain Models ─────────────────────────────────────────
+
+model PaymentMethod {
+  id              String              @id @default(uuid()) @db.Uuid
+  customerId      String              @map("customer_id") @db.Uuid
+  subscriptionId  String              @map("subscription_id") @db.Uuid
+  type            PaymentMethodType
+  status          PaymentMethodStatus @default(ACTIVE)
+  // Card info
+  cardLastFour    String?             @map("card_last_four") @db.VarChar(4)
+  cardBrand       String?             @map("card_brand") @db.VarChar(20)
+  cardHolderName  String?             @map("card_holder_name") @db.VarChar(255)
+  cardExpMonth    Int?                @map("card_exp_month")
+  cardExpYear     Int?                @map("card_exp_year")
+  cardTokenizedId String?             @map("card_tokenized_id") @db.VarChar(500)
+  // PIX info
+  pixKeyType      String?             @map("pix_key_type") @db.VarChar(10)
+  pixKey          String?             @map("pix_key") @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  transactions     PaymentTransaction[]
+  recurringBilling RecurringBilling?
+
+  @@index([customerId])
+  @@index([subscriptionId])
+  @@map("payment_methods")
+}
+
+model PaymentTransaction {
+  id                   String            @id @default(uuid()) @db.Uuid
+  paymentMethodId      String            @map("payment_method_id") @db.Uuid
+  customerId           String            @map("customer_id") @db.Uuid
+  subscriptionId       String            @map("subscription_id") @db.Uuid
+  orderId              String?           @map("order_id") @db.Uuid
+  type                 TransactionType
+  status               TransactionStatus @default(PENDING)
+  amountCents          Int               @map("amount_cents")
+  currency             String            @default("BRL") @db.VarChar(3)
+  gatewayTransactionId String?           @map("gateway_transaction_id") @db.VarChar(255)
+  failureReason        String?           @map("failure_reason") @db.Text
+  retryCount           Int               @default(0) @map("retry_count")
+  idempotencyKey       String            @unique @map("idempotency_key") @db.VarChar(255)
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+
+  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+
+  @@index([customerId])
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([orderId])
+  @@map("payment_transactions")
+}
+
+model RecurringBilling {
+  id                  String          @id @default(uuid()) @db.Uuid
+  customerId          String          @map("customer_id") @db.Uuid
+  subscriptionId      String          @unique @map("subscription_id") @db.Uuid
+  paymentMethodId     String          @unique @map("payment_method_id") @db.Uuid
+  amountCents         Int             @map("amount_cents")
+  currency            String          @default("BRL") @db.VarChar(3)
+  billingDay          Int             @map("billing_day")
+  status              RecurringStatus @default(ACTIVE)
+  nextBillingDate     DateTime        @map("next_billing_date") @db.Date
+  lastBillingDate     DateTime?       @map("last_billing_date") @db.Date
+  consecutiveFailures Int             @default(0) @map("consecutive_failures")
+  maxRetries          Int             @default(3) @map("max_retries")
+  createdAt           DateTime        @default(now()) @map("created_at")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
+
+  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+
+  @@index([status, nextBillingDate])
+  @@index([customerId])
+  @@map("recurring_billings")
+}
+
+// ─── Outbox Pattern ────────────────────────────────────────
+
+model OutboxEvent {
+  id            String    @id @default(uuid()) @db.Uuid
+  aggregateId   String    @map("aggregate_id") @db.VarChar(255)
+  aggregateType String    @map("aggregate_type") @db.VarChar(100)
+  eventType     String    @map("event_type") @db.VarChar(200)
+  payload       Json      @db.JsonB
+  correlationId String?   @map("correlation_id") @db.VarChar(255)
+  causationId   String?   @map("causation_id") @db.VarChar(255)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  publishedAt   DateTime? @map("published_at")
+  status        String    @default("PENDING") @db.VarChar(20)
+  retryCount    Int       @default(0) @map("retry_count")
+
+  @@index([status, createdAt])
+  @@map("outbox_events")
+}
+
+// ─── Idempotency ───────────────────────────────────────────
+
+model ProcessedEvent {
+  eventId     String   @id @map("event_id") @db.VarChar(255)
+  eventType   String   @map("event_type") @db.VarChar(200)
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("processed_events")
+}
