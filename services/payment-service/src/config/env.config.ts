@@ -1,5 +1,5 @@
 export const envConfig = {
-  port: parseInt(process.env.PORT ?? '3003', 10),
+  port: parseInt(process.env.PORT ?? '3004', 10),
   database: {
     url: process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/payment_service',
   },
@@ -9,7 +9,7 @@ export const envConfig = {
     groupId: 'payment-service',
   },
   grpc: {
-    port: parseInt(process.env.GRPC_PORT ?? '50053', 10),
+    port: parseInt(process.env.GRPC_PORT ?? '50054', 10),
   },
   serviceName: 'payment-service',
 };
