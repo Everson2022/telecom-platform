@@ -1,5 +1,5 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { PlanNameConflictException } from '../../errors';
+import { Injectable } from '@nestjs/common';
+import { PlanNameConflictException, InvalidMaxLinesException } from '../../errors';
 import { v4 as uuidv4 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
@@ -31,9 +31,7 @@ export class CreatePlanCommand {
 
     const expectedMaxLines = MAX_LINES_BY_TYPE[dto.type as PlanType];
     if (dto.maxLines !== undefined && dto.maxLines !== expectedMaxLines) {
-      throw new BadRequestException(
-        `Plan type ${dto.type} must have maxLines = ${expectedMaxLines}`,
-      );
+      throw new InvalidMaxLinesException(dto.type, expectedMaxLines);
     }
 
     const planId = uuidv4();

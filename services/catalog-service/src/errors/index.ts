@@ -7,3 +7,4 @@ export { PlanCannotBeDeprecatedException } from './plan-cannot-be-deprecated.exc
 export { InvalidPriceException } from './invalid-price.exception';
 export { ControlPlanRequiresFeaturesException } from './control-plan-requires-features.exception';
 export { InvalidOfferDateRangeException } from './invalid-offer-date-range.exception';
+export { InvalidMaxLinesException } from './invalid-max-lines.exception';
