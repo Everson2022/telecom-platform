@@ -6,6 +6,7 @@ import { PrismaService, PrismaTransactionClient } from '../../infrastructure/dat
 import { CustomerRepository } from '../../infrastructure/database/repositories/customer.repository';
 import { CUSTOMER_EVENTS } from '../../domain/events/customer-events';
 import { CreateCustomerDto } from '../../presentation/dto/create-customer.dto';
+import { CustomerStatus } from '../../domain/enums';
 
 @Injectable()
 export class RegisterCustomerCommand {
@@ -55,7 +56,7 @@ export class RegisterCustomerCommand {
           birthDate: new Date(dto.birthDate),
           email: email.toString(),
           phone: phone.toString(),
-          status: 'ACTIVE',
+          status: CustomerStatus.ACTIVE,
         },
       });
 
