@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, PriceLocality } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
+import { PrismaService, PrismaTransactionClient } from '../prisma.service';
 
 @Injectable()
 export class PriceLocalityRepository {
@@ -10,7 +10,7 @@ export class PriceLocalityRepository {
     where: Prisma.PriceLocalityOfferIdDddCodeCityCompoundUniqueInput,
     create: Prisma.PriceLocalityCreateInput,
     update: Prisma.PriceLocalityUpdateInput,
-    tx?: any,
+    tx?: PrismaTransactionClient,
   ): Promise<PriceLocality> {
     const client = tx ?? this.prisma;
     return client.priceLocality.upsert({
@@ -20,14 +20,14 @@ export class PriceLocalityRepository {
     });
   }
 
-  async findByOfferId(offerId: string) {
+  async findByOfferId(offerId: string): Promise<PriceLocality[]> {
     return this.prisma.priceLocality.findMany({
       where: { offerId },
       orderBy: { dddCode: 'asc' },
     });
   }
 
-  async findByLocality(offerId: string, dddCode: string, city?: string) {
+  async findByLocality(offerId: string, dddCode: string, city?: string): Promise<PriceLocality | null> {
     return this.prisma.priceLocality.findFirst({
       where: {
         offerId,
@@ -43,7 +43,7 @@ export class PriceLocalityRepository {
     take?: number;
     where?: Prisma.PriceLocalityWhereInput;
     orderBy?: Prisma.PriceLocalityOrderByWithRelationInput;
-  }) {
+  }): Promise<{ data: PriceLocality[]; total: number }> {
     const { skip, take, where, orderBy } = params;
     const [data, total] = await Promise.all([
       this.prisma.priceLocality.findMany({ skip, take, where, orderBy }),

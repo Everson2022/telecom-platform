@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { OfferStatus } from '../../domain/enums';
 import { OfferRepository } from '../../infrastructure/database/repositories/offer.repository';
+import { OfferWithRelations } from '../../domain/types';
 
 export interface ListOffersParams {
   page?: number;
@@ -10,16 +12,26 @@ export interface ListOffersParams {
   search?: string;
 }
 
+export interface PaginatedOffers {
+  data: OfferWithRelations[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+}
+
 @Injectable()
 export class ListOffersQuery {
   constructor(private readonly offerRepo: OfferRepository) {}
 
-  async execute(params: ListOffersParams) {
+  async execute(params: ListOffersParams): Promise<PaginatedOffers> {
     const page = params.page ?? 1;
     const pageSize = Math.min(params.pageSize ?? 20, 100);
     const skip = (page - 1) * pageSize;
 
-    const where: any = {};
+    const where: Prisma.OfferWhereInput = {};
     if (params.status) {
       where.status = params.status;
     }

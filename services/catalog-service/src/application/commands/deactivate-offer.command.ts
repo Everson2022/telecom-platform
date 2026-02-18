@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { OutboxRepository } from '@telecom/toolkit/database';
-import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { OfferRepository } from '../../infrastructure/database/repositories/offer.repository';
 import { CATALOG_EVENTS } from '../../domain/events/catalog-events';
+import { OfferWithRelations } from '../../domain/types';
 
 @Injectable()
 export class DeactivateOfferCommand {
@@ -13,7 +14,7 @@ export class DeactivateOfferCommand {
     private readonly offerRepo: OfferRepository,
   ) {}
 
-  async execute(id: string) {
+  async execute(id: string): Promise<OfferWithRelations> {
     const offer = await this.offerRepo.findById(id);
     if (!offer) {
       throw new NotFoundException(`Offer ${id} not found`);
@@ -23,13 +24,13 @@ export class DeactivateOfferCommand {
       throw new BadRequestException('Only ACTIVE offers can be deactivated');
     }
 
-    await this.prisma.$transaction(async (tx) => {
-      await (tx as any).offer.update({
+    await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+      await tx.offer.update({
         where: { id },
         data: { status: 'INACTIVE' },
       });
 
-      await this.outboxRepo.create(tx as any, {
+      await this.outboxRepo.create(tx, {
         aggregateId: id,
         aggregateType: 'Offer',
         eventType: CATALOG_EVENTS.OFFER_DEACTIVATED,
@@ -40,6 +41,10 @@ export class DeactivateOfferCommand {
       });
     });
 
-    return this.offerRepo.findById(id);
+    const updated = await this.offerRepo.findById(id);
+    if (!updated) {
+      throw new NotFoundException(`Offer ${id} not found after deactivation`);
+    }
+    return updated;
   }
 }

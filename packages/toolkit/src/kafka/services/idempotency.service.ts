@@ -21,8 +21,15 @@ export class IdempotencyService {
   }
 }
 
+export interface ProcessedEventPrismaClient {
+  processedEvent: {
+    findUnique(args: { where: { eventId: string } }): Promise<{ eventId: string } | null>;
+    create(args: { data: { eventId: string; eventType: string } }): Promise<unknown>;
+  };
+}
+
 export class PrismaIdempotencyStore implements IdempotencyStore {
-  constructor(private readonly prisma: any) {}
+  constructor(private readonly prisma: ProcessedEventPrismaClient) {}
 
   async exists(eventId: string): Promise<boolean> {
     const record = await this.prisma.processedEvent.findUnique({

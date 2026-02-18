@@ -16,7 +16,7 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
       clientId: config.clientId,
       brokers: config.brokers,
       ssl: config.ssl,
-      sasl: config.sasl as any,
+      sasl: config.sasl,
     });
 
     this.producer = this.kafka.producer({

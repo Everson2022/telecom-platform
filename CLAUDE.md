@@ -25,7 +25,7 @@ telecom-platform/
 │   └── proto/                # Definicoes Protocol Buffers (futuro)
 ├── services/
 │   ├── customer-service/     # Party Management (TMF632/629) — IMPLEMENTADO
-│   ├── catalog-service/      # (futuro)
+│   ├── catalog-service/      # Product Catalog (TMF620) — IMPLEMENTADO
 │   ├── order-service/        # (futuro)
 │   ├── payment-service/      # (futuro)
 │   ├── sim-management-service/ # (futuro)
@@ -153,13 +153,49 @@ Primeiro microsservico implementado. Gerencia cadastro de clientes, documentos e
 
 ### Portas padrao
 
-| Servico | Porta |
+| Servico | REST | gRPC |
+|---|---|---|
+| customer-service | 3001 | 50051 |
+| catalog-service | 3002 | 50052 |
+| order-service | 3003 | 50053 |
+| payment-service | 3004 | 50054 |
+
+| Infra | Porta |
 |---|---|
-| REST API | 3001 |
-| gRPC | 50051 |
 | PostgreSQL | 5432 |
 | Kafka (externo) | 29092 |
 | Kafka UI | 8080 |
+
+## Catalog Service
+
+Segundo microsservico implementado. Gerencia planos, ofertas e precos por localidade (TMF620).
+
+### Endpoints REST (Swagger em `/api/docs`)
+
+| Metodo | Rota | Descricao |
+|---|---|---|
+| POST | /plans | Cria plano |
+| GET | /plans | Lista planos (paginado, filtros: status, type, search) |
+| GET | /plans/:id | Busca plano por ID |
+| PATCH | /plans/:id | Atualiza plano |
+| POST | /plans/:id/deprecate | Depreca plano |
+| POST | /offers | Cria oferta |
+| GET | /offers | Lista ofertas (paginado, filtros: status, planId, search) |
+| GET | /offers/:id | Busca oferta por ID |
+| POST | /offers/:id/deactivate | Desativa oferta |
+| POST | /offers/:offerId/prices | Define preco por localidade (DDD + cidade) |
+| GET | /offers/:offerId/prices | Lista precos por localidade |
+
+### gRPC (porta 50052)
+
+- GetPlanById, ListPlans, GetOfferById, GetOfferPriceByLocality, CheckEligibility
+
+### Modelos de Dominio
+
+- **Plan**: tipo (CONTROL/PREPAID/POSTPAID), maxLines, features (PlanFeature)
+- **Offer**: vinculada a Plan, preco base, periodo de validade, regras de elegibilidade
+- **PriceLocality**: preco por DDD + cidade (override do preco base)
+- **EligibilityRule**: regras JSON para verificar elegibilidade do cliente
 
 ## Infraestrutura Local (Docker)
 
@@ -184,6 +220,33 @@ Primeiro microsservico implementado. Gerencia cadastro de clientes, documentos e
 - Money sempre em centavos (inteiro), nunca float
 - CPF sempre validado algoritmicamente
 - PRDs seguem nomenclatura `PRD-NNN-descricao.md`
+
+## OBRIGACOES — TypeScript e Arquitetura (SEM EXCECAO)
+
+### PROIBIDO usar `any`
+**NUNCA** usar `any` em nenhum arquivo de servico ou toolkit (`.ts`):
+- Proibido: `: any`, `as any`, `<any>`
+- Usar `unknown` com narrowing quando o tipo nao for conhecido
+- Usar `Prisma.InputJsonValue` para campos JSON do Prisma
+- Usar `Prisma.TransactionClient` (exportado como `PrismaTransactionClient`) para parametros de transacao
+- Usar `Prisma.XxxGetPayload<{ include: ... }>` para entidades com relacoes (ex: `CustomerWithRelations`)
+- Usar `Prisma.XxxWhereInput` para filtros de query
+- Usar `Prisma.XxxUpdateInput` para dados de atualizacao
+
+### Controllers SEMPRE chamam Use Cases
+**NUNCA** injetar Repository diretamente em Controller (REST ou gRPC):
+- Controllers REST chamam Commands (escrita) e Queries (leitura)
+- Controllers gRPC chamam Queries — sao somente leitura
+- Repositories so sao chamados por Commands e Queries (camada application/)
+- Exemplo correto: `Controller → GetCustomerQuery → CustomerRepository`
+- Exemplo PROIBIDO: `Controller → CustomerRepository` (direto)
+
+### Tipos de dominio para entidades com relacoes
+Criar `src/domain/types/index.ts` em cada servico com:
+```typescript
+export type XxxWithRelations = Prisma.XxxGetPayload<{ include: { relation: true } }>;
+```
+Retornar sempre o tipo com relacoes nas queries e commands — nunca retornar `any` ou tipo parcial.
 
 ## Referencia
 

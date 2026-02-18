@@ -1,7 +1,7 @@
 import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
-import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { PlanRepository } from '../../infrastructure/database/repositories/plan.repository';
 import { CATALOG_EVENTS } from '../../domain/events/catalog-events';
 import { CreatePlanDto } from '../../presentation/dto/create-plan.dto';
@@ -23,14 +23,12 @@ export class CreatePlanCommand {
   ) {}
 
   async execute(dto: CreatePlanDto): Promise<string> {
-    // Validar nome unico
     const existingByName = await this.planRepo.findByName(dto.name);
     if (existingByName) {
       throw new ConflictException('Plan name already exists');
     }
 
-    // Validar maxLines conforme type
-    const expectedMaxLines = MAX_LINES_BY_TYPE[dto.type];
+    const expectedMaxLines = MAX_LINES_BY_TYPE[dto.type as PlanType];
     if (dto.maxLines !== undefined && dto.maxLines !== expectedMaxLines) {
       throw new BadRequestException(
         `Plan type ${dto.type} must have maxLines = ${expectedMaxLines}`,
@@ -40,9 +38,8 @@ export class CreatePlanCommand {
     const planId = uuidv4();
     const maxLines = dto.maxLines ?? expectedMaxLines;
 
-    await this.prisma.$transaction(async (tx) => {
-      // Criar plano
-      await (tx as any).plan.create({
+    await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+      await tx.plan.create({
         data: {
           id: planId,
           name: dto.name,
@@ -53,10 +50,9 @@ export class CreatePlanCommand {
         },
       });
 
-      // Criar features
       if (dto.features && dto.features.length > 0) {
         for (const feature of dto.features) {
-          await (tx as any).planFeature.create({
+          await tx.planFeature.create({
             data: {
               id: uuidv4(),
               planId,
@@ -69,8 +65,7 @@ export class CreatePlanCommand {
         }
       }
 
-      // Outbox event
-      await this.outboxRepo.create(tx as any, {
+      await this.outboxRepo.create(tx, {
         aggregateId: planId,
         aggregateType: 'Plan',
         eventType: CATALOG_EVENTS.PLAN_CREATED,

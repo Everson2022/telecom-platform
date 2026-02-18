@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Offer } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
+import { PrismaService, PrismaTransactionClient } from '../prisma.service';
+import { OfferWithRelations } from '../../../domain/types';
 
 @Injectable()
 export class OfferRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Prisma.OfferCreateInput, tx?: any): Promise<Offer> {
+  async create(data: Prisma.OfferCreateInput, tx?: PrismaTransactionClient): Promise<Offer> {
     const client = tx ?? this.prisma;
     return client.offer.create({ data });
   }
 
-  async findById(id: string, tx?: any) {
+  async findById(id: string, tx?: PrismaTransactionClient): Promise<OfferWithRelations | null> {
     const client = tx ?? this.prisma;
     return client.offer.findUnique({
       where: { id },
@@ -19,7 +20,7 @@ export class OfferRepository {
     });
   }
 
-  async update(id: string, data: Prisma.OfferUpdateInput, tx?: any): Promise<Offer> {
+  async update(id: string, data: Prisma.OfferUpdateInput, tx?: PrismaTransactionClient): Promise<Offer> {
     const client = tx ?? this.prisma;
     return client.offer.update({ where: { id }, data });
   }
@@ -29,7 +30,7 @@ export class OfferRepository {
     take?: number;
     where?: Prisma.OfferWhereInput;
     orderBy?: Prisma.OfferOrderByWithRelationInput;
-  }) {
+  }): Promise<{ data: OfferWithRelations[]; total: number }> {
     const { skip, take, where, orderBy } = params;
     const [data, total] = await Promise.all([
       this.prisma.offer.findMany({

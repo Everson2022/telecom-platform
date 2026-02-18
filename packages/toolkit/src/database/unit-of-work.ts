@@ -1,16 +1,18 @@
 import { Logger } from '@nestjs/common';
 
+/**
+ * Minimal transaction interface required by the toolkit's OutboxRepository.
+ * Services use their own Prisma.TransactionClient which satisfies this
+ * interface through TypeScript's structural (bivariant method) typing.
+ */
 export interface PrismaTransaction {
   outboxEvent: {
     create(args: { data: Record<string, unknown> }): Promise<unknown>;
   };
-  $executeRaw: (...args: unknown[]) => Promise<number>;
-  $queryRaw: <T = unknown>(...args: unknown[]) => Promise<T>;
-  [key: string]: unknown;
 }
 
-export type PrismaClient = PrismaTransaction & {
-  $transaction: <T>(fn: (tx: PrismaTransaction) => Promise<T>) => Promise<T>;
+export type PrismaClient = {
+  $transaction<T>(fn: (tx: PrismaTransaction) => Promise<T>): Promise<T>;
 };
 
 export interface UnitOfWork {

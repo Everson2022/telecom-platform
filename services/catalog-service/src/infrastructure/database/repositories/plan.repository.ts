@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Plan } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
+import { PrismaService, PrismaTransactionClient } from '../prisma.service';
+import { PlanWithFeatures } from '../../../domain/types';
 
 @Injectable()
 export class PlanRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Prisma.PlanCreateInput, tx?: any): Promise<Plan> {
+  async create(data: Prisma.PlanCreateInput, tx?: PrismaTransactionClient): Promise<Plan> {
     const client = tx ?? this.prisma;
     return client.plan.create({ data });
   }
 
-  async findById(id: string, tx?: any) {
+  async findById(id: string, tx?: PrismaTransactionClient): Promise<PlanWithFeatures | null> {
     const client = tx ?? this.prisma;
     return client.plan.findUnique({
       where: { id },
@@ -19,14 +20,14 @@ export class PlanRepository {
     });
   }
 
-  async findByName(name: string) {
+  async findByName(name: string): Promise<PlanWithFeatures | null> {
     return this.prisma.plan.findUnique({
       where: { name },
       include: { features: true },
     });
   }
 
-  async update(id: string, data: Prisma.PlanUpdateInput, tx?: any): Promise<Plan> {
+  async update(id: string, data: Prisma.PlanUpdateInput, tx?: PrismaTransactionClient): Promise<Plan> {
     const client = tx ?? this.prisma;
     return client.plan.update({ where: { id }, data });
   }
@@ -36,7 +37,7 @@ export class PlanRepository {
     take?: number;
     where?: Prisma.PlanWhereInput;
     orderBy?: Prisma.PlanOrderByWithRelationInput;
-  }) {
+  }): Promise<{ data: PlanWithFeatures[]; total: number }> {
     const { skip, take, where, orderBy } = params;
     const [data, total] = await Promise.all([
       this.prisma.plan.findMany({

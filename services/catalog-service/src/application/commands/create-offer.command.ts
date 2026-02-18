@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
-import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { PlanRepository } from '../../infrastructure/database/repositories/plan.repository';
 import { CATALOG_EVENTS } from '../../domain/events/catalog-events';
 import { CreateOfferDto } from '../../presentation/dto/create-offer.dto';
@@ -16,7 +17,6 @@ export class CreateOfferCommand {
   ) {}
 
   async execute(dto: CreateOfferDto): Promise<string> {
-    // Validar plano existe e esta ativo
     const plan = await this.planRepo.findById(dto.planId);
     if (!plan) {
       throw new NotFoundException(`Plan ${dto.planId} not found`);
@@ -25,12 +25,10 @@ export class CreateOfferCommand {
       throw new BadRequestException('Plan must be ACTIVE to create an offer');
     }
 
-    // Validar preco
     if (dto.basePriceAmountCents <= 0) {
       throw new BadRequestException('Base price must be greater than 0');
     }
 
-    // Validar datas
     const validFrom = new Date(dto.validFrom);
     if (dto.validUntil) {
       const validUntil = new Date(dto.validUntil);
@@ -41,8 +39,8 @@ export class CreateOfferCommand {
 
     const offerId = uuidv4();
 
-    await this.prisma.$transaction(async (tx) => {
-      await (tx as any).offer.create({
+    await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
+      await tx.offer.create({
         data: {
           id: offerId,
           planId: dto.planId,
@@ -55,21 +53,20 @@ export class CreateOfferCommand {
         },
       });
 
-      // Criar regras de elegibilidade
       if (dto.eligibilityRules && dto.eligibilityRules.length > 0) {
         for (const rule of dto.eligibilityRules) {
-          await (tx as any).eligibilityRule.create({
+          await tx.eligibilityRule.create({
             data: {
               id: uuidv4(),
               offerId,
               ruleType: rule.ruleType,
-              ruleValue: rule.ruleValue,
+              ruleValue: rule.ruleValue as Prisma.InputJsonValue,
             },
           });
         }
       }
 
-      await this.outboxRepo.create(tx as any, {
+      await this.outboxRepo.create(tx, {
         aggregateId: offerId,
         aggregateType: 'Offer',
         eventType: CATALOG_EVENTS.OFFER_CREATED,

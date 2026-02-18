@@ -19,41 +19,48 @@ export class GrpcErrorMappingInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
-      catchError((error) => {
+      catchError((error: unknown) => {
         if (error instanceof GrpcError) {
           return throwError(() => error);
         }
 
         const grpcError = this.mapToGrpcError(error);
-        this.logger.error(`Mapped error to gRPC status ${grpcError.code}: ${error.message}`);
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.error(`Mapped error to gRPC status ${grpcError.code}: ${message}`);
         return throwError(() => grpcError);
       }),
     );
   }
 
-  private mapToGrpcError(error: any): GrpcError {
-    if (error.code === 'P2025') {
+  private mapToGrpcError(error: unknown): GrpcError {
+    const err = error as Record<string, unknown>;
+    const code = err['code'] as string | undefined;
+    const name = err['name'] as string | undefined;
+    const status = err['status'] as number | undefined;
+    const message = (err['message'] as string | undefined) ?? 'Internal server error';
+
+    if (code === 'P2025') {
       return new GrpcError(GrpcStatus.NOT_FOUND, 'Resource not found');
     }
 
-    if (error.code === 'P2002') {
+    if (code === 'P2002') {
       return new GrpcError(GrpcStatus.ALREADY_EXISTS, 'Resource already exists');
     }
 
-    if (error.name === 'ValidationError' || error.status === 400) {
-      return new GrpcError(GrpcStatus.INVALID_ARGUMENT, error.message);
+    if (name === 'ValidationError' || status === 400) {
+      return new GrpcError(GrpcStatus.INVALID_ARGUMENT, message);
     }
 
-    if (error.name === 'NotFoundException' || error.status === 404) {
-      return new GrpcError(GrpcStatus.NOT_FOUND, error.message);
+    if (name === 'NotFoundException' || status === 404) {
+      return new GrpcError(GrpcStatus.NOT_FOUND, message);
     }
 
-    if (error.name === 'UnauthorizedException' || error.status === 401) {
-      return new GrpcError(GrpcStatus.UNAUTHENTICATED, error.message);
+    if (name === 'UnauthorizedException' || status === 401) {
+      return new GrpcError(GrpcStatus.UNAUTHENTICATED, message);
     }
 
-    if (error.name === 'ForbiddenException' || error.status === 403) {
-      return new GrpcError(GrpcStatus.PERMISSION_DENIED, error.message);
+    if (name === 'ForbiddenException' || status === 403) {
+      return new GrpcError(GrpcStatus.PERMISSION_DENIED, message);
     }
 
     return new GrpcError(GrpcStatus.INTERNAL, 'Internal server error');
