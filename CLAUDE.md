@@ -308,15 +308,35 @@ Retornar sempre o tipo com relacoes nas queries e commands — nunca retornar `a
 - Exemplo correto de cross-field: `@IsAfterDate('validFrom')` no campo `validUntil`
 - Excecoes que devem ficar no command: validacoes que requerem estado do banco (ex: checar status atual do agregado, relacoes entre entidades)
 
+### Enums definidos no dominio — independentes do Prisma
+**NUNCA** re-exportar enums diretamente de `@prisma/client` no dominio:
+- Proibido: `export { PlanType } from '@prisma/client'` em `src/domain/enums/`
+- **Obrigatorio:** cada enum = 1 arquivo em `src/domain/enums/` usando o padrao `as const`
+- O padrao `as const` produz tipos estruturalmente identicos ao Prisma (`'ACTIVE' | 'INACTIVE'`), garantindo compatibilidade sem acoplamento
+- Exportar tudo via barrel `src/domain/enums/index.ts`
+- Exemplo correto:
+  ```typescript
+  // src/domain/enums/plan-status.enum.ts
+  export const PlanStatus = {
+    ACTIVE: 'ACTIVE',
+    INACTIVE: 'INACTIVE',
+    DEPRECATED: 'DEPRECATED',
+  } as const;
+  export type PlanStatus = (typeof PlanStatus)[keyof typeof PlanStatus];
+
+  // src/domain/enums/index.ts
+  export { PlanStatus } from './plan-status.enum';
+  ```
+
 ### Enums SEMPRE usados como constantes tipadas — nunca como string literals
 **NUNCA** comparar ou atribuir valores de enum como strings literais no codigo de aplicacao:
 - Proibido: `plan.status !== 'ACTIVE'`, `data: { status: 'DEPRECATED' }`, `Record<string, number>` com chaves `'CONTROL'`
 - **Obrigatorio:** usar a constante do enum (`PlanStatus.ACTIVE`, `OfferStatus.INACTIVE`, `PlanType.CONTROL`)
-- Importar sempre de `../../domain/enums` (que re-exportam do Prisma Client gerado localmente)
+- Importar sempre de `../../domain/enums`
 - Para maps/records indexados por enum: `Record<PlanType, number>` com `[PlanType.CONTROL]: 5` como chave
 - Exemplo correto:
   ```typescript
-  import { PlanStatus, OfferStatus, PriceLocalityStatus } from '../../domain/enums';
+  import { PlanStatus, OfferStatus } from '../../domain/enums';
   // comparacao:
   if (plan.status !== PlanStatus.ACTIVE) throw new PlanNotActiveException();
   // atribuicao:
@@ -328,7 +348,7 @@ Retornar sempre o tipo com relacoes nas queries e commands — nunca retornar `a
 ### DTOs SEMPRE devem usar enums do dominio
 **NUNCA** usar string literals em DTOs para valores que representam enums:
 - Proibido: `@IsEnum(['CONTROL', 'PREPAID', 'POSTPAID'])`, `type!: 'ACTIVE' | 'INACTIVE'`, `@ApiProperty({ enum: ['GB', 'MIN'] })`
-- **Obrigatorio:** importar e usar os enums de `../../domain/enums` (que re-exportam de `@prisma/client`)
+- **Obrigatorio:** importar e usar os enums de `../../domain/enums`
 - Exemplo correto:
   ```typescript
   import { PlanType, FeatureUnit } from '../../domain/enums';
@@ -336,7 +356,6 @@ Retornar sempre o tipo com relacoes nas queries e commands — nunca retornar `a
   type!: PlanType;
   @ApiProperty({ enum: PlanType })
   ```
-- Enums ficam em `src/domain/enums/index.ts` e re-exportam do Prisma Client gerado localmente
 
 ## Referencia
 
