@@ -5,9 +5,8 @@ import { Observable, tap } from 'rxjs';
 export class GrpcLoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger(GrpcLoggingInterceptor.name);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const rpcContext = context.switchToRpc();
-    const data = rpcContext.getData();
     const handler = context.getHandler().name;
     const className = context.getClass().name;
 

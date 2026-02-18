@@ -27,4 +27,4 @@ async function bootstrap() {
   await app.listen(envConfig.port);
 }
 
-bootstrap();
+void bootstrap();

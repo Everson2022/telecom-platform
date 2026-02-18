@@ -32,11 +32,21 @@
   },
   "typesVersions": {
     "*": {
-      "kafka": ["./dist/kafka/index.d.ts"],
-      "database": ["./dist/database/index.d.ts"],
-      "saga": ["./dist/saga/index.d.ts"],
-      "grpc": ["./dist/grpc/index.d.ts"],
-      "value-objects": ["./dist/value-objects/index.d.ts"]
+      "kafka": [
+        "./dist/kafka/index.d.ts"
+      ],
+      "database": [
+        "./dist/database/index.d.ts"
+      ],
+      "saga": [
+        "./dist/saga/index.d.ts"
+      ],
+      "grpc": [
+        "./dist/grpc/index.d.ts"
+      ],
+      "value-objects": [
+        "./dist/value-objects/index.d.ts"
+      ]
     }
   },
   "files": [
@@ -48,24 +58,26 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src/",
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.12.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/microservices": "^11.0.0",
     "@prisma/client": "^6.0.0",
     "kafkajs": "^2.2.4",
-    "@grpc/grpc-js": "^1.12.0",
-    "uuid": "^11.0.0",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.0"
+    "rxjs": "^7.8.0",
+    "uuid": "^11.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/uuid": "^10.0.0",
+    "eslint": "^10.0.0",
     "typescript": "^5.7.0",
+    "typescript-eslint": "^8.56.0",
     "vitest": "^3.0.0"
   },
   "peerDependencies": {

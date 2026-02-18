@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 import {
   SagaStepDefinition,
-  SagaStatus,
   SagaStepStatus,
   SagaExecutionState,
 } from './saga-step.interface';

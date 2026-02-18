@@ -17,6 +17,7 @@ export class GrpcError extends RpcException {
 export class GrpcErrorMappingInterceptor implements NestInterceptor {
   private readonly logger = new Logger(GrpcErrorMappingInterceptor.name);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       catchError((error: unknown) => {
