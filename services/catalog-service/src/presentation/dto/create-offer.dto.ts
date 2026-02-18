@@ -11,6 +11,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsAfterDate } from '../validators/is-after-date.validator';
 
 export class CreateEligibilityRuleInput {
   @ApiProperty({ example: 'MIN_AGE', description: 'Tipo da regra' })
@@ -50,6 +51,7 @@ export class CreateOfferDto {
   @ApiProperty({ required: false, example: '2025-12-31T23:59:59Z', description: 'Fim da validade' })
   @IsOptional()
   @IsDateString()
+  @IsAfterDate('validFrom')
   validUntil?: string;
 
   @ApiProperty({ required: false, type: [CreateEligibilityRuleInput], description: 'Regras de elegibilidade' })

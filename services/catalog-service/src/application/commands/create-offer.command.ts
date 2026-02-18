@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PlanNotFoundException, PlanNotActiveException, InvalidPriceException, InvalidOfferDateRangeException } from '../../errors';
+import { PlanNotFoundException, PlanNotActiveException, InvalidPriceException } from '../../errors';
 import { Prisma } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
@@ -31,12 +31,6 @@ export class CreateOfferCommand {
     }
 
     const validFrom = new Date(dto.validFrom);
-    if (dto.validUntil) {
-      const validUntil = new Date(dto.validUntil);
-      if (validFrom >= validUntil) {
-        throw new InvalidOfferDateRangeException();
-      }
-    }
 
     const offerId = uuidv4();
 

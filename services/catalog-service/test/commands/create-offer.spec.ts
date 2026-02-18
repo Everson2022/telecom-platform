@@ -104,16 +104,6 @@ describe('CreateOfferCommand', () => {
     await expect(command.execute(dto)).rejects.toThrow(BadRequestException);
   });
 
-  it('deve rejeitar validFrom >= validUntil', async () => {
-    const dto = {
-      ...validDto,
-      validFrom: '2025-12-31T23:59:59Z',
-      validUntil: '2025-01-01T00:00:00Z',
-    };
-
-    await expect(command.execute(dto)).rejects.toThrow(BadRequestException);
-  });
-
   it('deve criar oferta sem validUntil', async () => {
     const dto = { ...validDto, validUntil: undefined };
 
