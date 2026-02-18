@@ -1,4 +1,4 @@
-# PRD-001 — Migração de Imports Relativos para Aliases `@/`
+# PRD-004 — Migração de Imports Relativos para Aliases `@/`
 
 **Data:** 2026-02-18
 **Status:** Proposto
