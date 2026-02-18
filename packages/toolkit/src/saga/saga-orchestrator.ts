@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import {
   SagaStepDefinition,
   SagaStepStatus,
+  SagaStatus,
   SagaExecutionState,
 } from './saga-step.interface';
 import { SagaExecutionRepository } from './saga-execution.repository';
@@ -26,7 +27,7 @@ export class SagaOrchestrator<TContext = Record<string, unknown>> {
       steps: this.definition.steps.map((step, index) => ({
         stepName: step.name,
         stepOrder: index,
-        status: 'PENDING' as SagaStepStatus,
+        status: SagaStepStatus.PENDING,
         retryCount: 0,
       })),
     });
@@ -48,7 +49,7 @@ export class SagaOrchestrator<TContext = Record<string, unknown>> {
       throw new Error(`Saga execution ${sagaExecutionId} not found`);
     }
 
-    await this.repository.updateStepStatus(sagaExecutionId, stepName, 'COMPLETED');
+    await this.repository.updateStepStatus(sagaExecutionId, stepName, SagaStepStatus.COMPLETED);
 
     this.logger.log(
       `Step ${stepName} completed in saga ${sagaExecutionId}`,
@@ -69,7 +70,7 @@ export class SagaOrchestrator<TContext = Record<string, unknown>> {
       throw new Error(`Saga execution ${sagaExecutionId} not found`);
     }
 
-    await this.repository.updateStepStatus(sagaExecutionId, stepName, 'FAILED', error);
+    await this.repository.updateStepStatus(sagaExecutionId, stepName, SagaStepStatus.FAILED, error);
 
     this.logger.warn(
       `Step ${stepName} failed in saga ${sagaExecutionId}: ${error}`,
@@ -82,21 +83,21 @@ export class SagaOrchestrator<TContext = Record<string, unknown>> {
     execution: SagaExecutionState,
     context: TContext,
   ): Promise<SagaExecutionState> {
-    const nextStep = execution.steps.find((s) => s.status === 'PENDING');
+    const nextStep = execution.steps.find((s) => s.status === SagaStepStatus.PENDING);
 
     if (!nextStep) {
       await this.repository.updateStatus(
         execution.sagaExecutionId,
-        'COMPLETED',
+        SagaStatus.COMPLETED,
       );
       this.logger.log(`Saga ${execution.sagaExecutionId} completed`);
-      return { ...execution, status: 'COMPLETED', completedAt: new Date() };
+      return { ...execution, status: SagaStatus.COMPLETED, completedAt: new Date() };
     }
 
     await this.repository.updateStepStatus(
       execution.sagaExecutionId,
       nextStep.stepName,
-      'EXECUTING',
+      SagaStepStatus.EXECUTING,
     );
     await this.repository.updateCurrentStep(
       execution.sagaExecutionId,
@@ -120,18 +121,18 @@ export class SagaOrchestrator<TContext = Record<string, unknown>> {
       );
     }
 
-    return { ...execution, currentStep: nextStep.stepName, status: 'RUNNING' };
+    return { ...execution, currentStep: nextStep.stepName, status: SagaStatus.RUNNING };
   }
 
   private async startCompensation(
     execution: SagaExecutionState,
     context: TContext,
   ): Promise<SagaExecutionState> {
-    await this.repository.updateStatus(execution.sagaExecutionId, 'COMPENSATING');
+    await this.repository.updateStatus(execution.sagaExecutionId, SagaStatus.COMPENSATING);
     this.logger.warn(`Starting compensation for saga ${execution.sagaExecutionId}`);
 
     const completedSteps = execution.steps
-      .filter((s) => s.status === 'COMPLETED')
+      .filter((s) => s.status === SagaStepStatus.COMPLETED)
       .sort((a, b) => {
         const aIndex = this.definition.steps.findIndex((d) => d.name === a.stepName);
         const bIndex = this.definition.steps.findIndex((d) => d.name === b.stepName);
@@ -146,7 +147,7 @@ export class SagaOrchestrator<TContext = Record<string, unknown>> {
         await this.repository.updateStepStatus(
           execution.sagaExecutionId,
           step.stepName,
-          'COMPENSATING',
+          SagaStepStatus.COMPENSATING,
         );
 
         await stepDef.compensate(context);
@@ -154,7 +155,7 @@ export class SagaOrchestrator<TContext = Record<string, unknown>> {
         await this.repository.updateStepStatus(
           execution.sagaExecutionId,
           step.stepName,
-          'COMPENSATED',
+          SagaStepStatus.COMPENSATED,
         );
 
         this.logger.log(`Compensated step ${step.stepName} in saga ${execution.sagaExecutionId}`);
@@ -163,14 +164,14 @@ export class SagaOrchestrator<TContext = Record<string, unknown>> {
         this.logger.error(
           `Compensation failed for step ${step.stepName} in saga ${execution.sagaExecutionId}: ${errorMsg}`,
         );
-        await this.repository.updateStatus(execution.sagaExecutionId, 'FAILED');
-        return { ...execution, status: 'FAILED' };
+        await this.repository.updateStatus(execution.sagaExecutionId, SagaStatus.FAILED);
+        return { ...execution, status: SagaStatus.FAILED };
       }
     }
 
-    await this.repository.updateStatus(execution.sagaExecutionId, 'COMPENSATED');
+    await this.repository.updateStatus(execution.sagaExecutionId, SagaStatus.COMPENSATED);
     this.logger.log(`Saga ${execution.sagaExecutionId} fully compensated`);
 
-    return { ...execution, status: 'COMPENSATED', compensatedAt: new Date() };
+    return { ...execution, status: SagaStatus.COMPENSATED, compensatedAt: new Date() };
   }
 }

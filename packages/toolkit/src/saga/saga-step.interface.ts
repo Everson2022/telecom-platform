@@ -1,17 +1,23 @@
-export type SagaStepStatus =
-  | 'PENDING'
-  | 'EXECUTING'
-  | 'COMPLETED'
-  | 'FAILED'
-  | 'COMPENSATING'
-  | 'COMPENSATED';
+export const SagaStepStatus = {
+  PENDING: 'PENDING',
+  EXECUTING: 'EXECUTING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  COMPENSATING: 'COMPENSATING',
+  COMPENSATED: 'COMPENSATED',
+} as const;
 
-export type SagaStatus =
-  | 'RUNNING'
-  | 'COMPLETED'
-  | 'COMPENSATING'
-  | 'COMPENSATED'
-  | 'FAILED';
+export type SagaStepStatus = (typeof SagaStepStatus)[keyof typeof SagaStepStatus];
+
+export const SagaStatus = {
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED',
+  COMPENSATING: 'COMPENSATING',
+  COMPENSATED: 'COMPENSATED',
+  FAILED: 'FAILED',
+} as const;
+
+export type SagaStatus = (typeof SagaStatus)[keyof typeof SagaStatus];
 
 export interface SagaStepDefinition<TContext = Record<string, unknown>> {
   name: string;

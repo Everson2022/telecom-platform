@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OutboxStore } from '@telecom/toolkit/kafka';
+import { OutboxStatus } from '@telecom/toolkit/database';
 import { PrismaService } from '../database/prisma.service';
 
 interface OutboxEvent {
@@ -22,7 +23,7 @@ export class CatalogOutboxStore implements OutboxStore {
 
   async findPendingEvents(batchSize: number): Promise<OutboxEvent[]> {
     const events = await this.prisma.outboxEvent.findMany({
-      where: { status: 'PENDING' },
+      where: { status: OutboxStatus.PENDING },
       orderBy: { createdAt: 'asc' },
       take: batchSize,
     });
@@ -45,7 +46,7 @@ export class CatalogOutboxStore implements OutboxStore {
   async markAsPublished(id: string): Promise<void> {
     await this.prisma.outboxEvent.update({
       where: { id },
-      data: { status: 'PUBLISHED', publishedAt: new Date() },
+      data: { status: OutboxStatus.PUBLISHED, publishedAt: new Date() },
     });
   }
 
@@ -59,7 +60,7 @@ export class CatalogOutboxStore implements OutboxStore {
   async markAsFailed(id: string): Promise<void> {
     await this.prisma.outboxEvent.update({
       where: { id },
-      data: { status: 'FAILED' },
+      data: { status: OutboxStatus.FAILED },
     });
   }
 }

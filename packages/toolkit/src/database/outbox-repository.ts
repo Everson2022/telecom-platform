@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaTransaction } from './unit-of-work';
+import { OutboxStatus } from './outbox-status';
 
 export interface CreateOutboxEventParams {
   aggregateId: string;
@@ -51,7 +52,7 @@ export class OutboxRepository {
         payload: params.payload,
         correlationId: params.correlationId ?? null,
         causationId: params.causationId ?? null,
-        status: 'PENDING',
+        status: OutboxStatus.PENDING,
         retryCount: 0,
       },
     });
@@ -60,7 +61,7 @@ export class OutboxRepository {
 
   async findPending(prisma: OutboxPrismaClient, batchSize: number): Promise<OutboxEventRecord[]> {
     return prisma.outboxEvent.findMany({
-      where: { status: 'PENDING' },
+      where: { status: OutboxStatus.PENDING },
       orderBy: { createdAt: 'asc' },
       take: batchSize,
     });
@@ -70,7 +71,7 @@ export class OutboxRepository {
     await prisma.outboxEvent.update({
       where: { id },
       data: {
-        status: 'PUBLISHED',
+        status: OutboxStatus.PUBLISHED,
         publishedAt: new Date(),
       },
     });
@@ -88,7 +89,7 @@ export class OutboxRepository {
   async markAsFailed(prisma: OutboxPrismaClient, id: string): Promise<void> {
     await prisma.outboxEvent.update({
       where: { id },
-      data: { status: 'FAILED' },
+      data: { status: OutboxStatus.FAILED },
     });
   }
 }
