@@ -308,6 +308,23 @@ Retornar sempre o tipo com relacoes nas queries e commands — nunca retornar `a
 - Exemplo correto de cross-field: `@IsAfterDate('validFrom')` no campo `validUntil`
 - Excecoes que devem ficar no command: validacoes que requerem estado do banco (ex: checar status atual do agregado, relacoes entre entidades)
 
+### Enums SEMPRE usados como constantes tipadas — nunca como string literals
+**NUNCA** comparar ou atribuir valores de enum como strings literais no codigo de aplicacao:
+- Proibido: `plan.status !== 'ACTIVE'`, `data: { status: 'DEPRECATED' }`, `Record<string, number>` com chaves `'CONTROL'`
+- **Obrigatorio:** usar a constante do enum (`PlanStatus.ACTIVE`, `OfferStatus.INACTIVE`, `PlanType.CONTROL`)
+- Importar sempre de `../../domain/enums` (que re-exportam do Prisma Client gerado localmente)
+- Para maps/records indexados por enum: `Record<PlanType, number>` com `[PlanType.CONTROL]: 5` como chave
+- Exemplo correto:
+  ```typescript
+  import { PlanStatus, OfferStatus, PriceLocalityStatus } from '../../domain/enums';
+  // comparacao:
+  if (plan.status !== PlanStatus.ACTIVE) throw new PlanNotActiveException();
+  // atribuicao:
+  data: { status: OfferStatus.INACTIVE }
+  // record:
+  const MAX_LINES: Record<PlanType, number> = { [PlanType.CONTROL]: 5, [PlanType.PREPAID]: 1, ... }
+  ```
+
 ### DTOs SEMPRE devem usar enums do dominio
 **NUNCA** usar string literals em DTOs para valores que representam enums:
 - Proibido: `@IsEnum(['CONTROL', 'PREPAID', 'POSTPAID'])`, `type!: 'ACTIVE' | 'INACTIVE'`, `@ApiProperty({ enum: ['GB', 'MIN'] })`
