@@ -11,6 +11,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { FeatureUnit, PaymentMethodType } from '../../domain/enums';
 
 export class UpdatePlanFeatureInput {
   @ApiProperty({ example: 'Dados' })
@@ -23,9 +24,9 @@ export class UpdatePlanFeatureInput {
   @Min(0)
   quota!: number;
 
-  @ApiProperty({ enum: ['GB', 'MIN', 'UNIT'] })
-  @IsEnum(['GB', 'MIN', 'UNIT'])
-  unit!: 'GB' | 'MIN' | 'UNIT';
+  @ApiProperty({ enum: FeatureUnit })
+  @IsEnum(FeatureUnit)
+  unit!: FeatureUnit;
 
   @ApiProperty({ required: false, default: false })
   @IsOptional()
@@ -40,11 +41,11 @@ export class UpdatePlanDto {
   @MaxLength(255)
   name?: string;
 
-  @ApiProperty({ required: false, type: [String], enum: ['CARD', 'PIX'] })
+  @ApiProperty({ required: false, type: [String], enum: PaymentMethodType })
   @IsOptional()
   @IsArray()
-  @IsEnum(['CARD', 'PIX'], { each: true })
-  allowedPaymentMethods?: ('CARD' | 'PIX')[];
+  @IsEnum(PaymentMethodType, { each: true })
+  allowedPaymentMethods?: PaymentMethodType[];
 
   @ApiProperty({ required: false, type: [UpdatePlanFeatureInput], description: 'Substituir todas as features' })
   @IsOptional()

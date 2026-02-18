@@ -13,11 +13,12 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { DocumentType, AddressType } from '../../domain/enums';
 
 export class CreateDocumentInput {
-  @ApiProperty({ enum: ['CPF', 'RG', 'CNH', 'PASSPORT'] })
-  @IsEnum(['CPF', 'RG', 'CNH', 'PASSPORT'])
-  type!: 'CPF' | 'RG' | 'CNH' | 'PASSPORT';
+  @ApiProperty({ enum: DocumentType })
+  @IsEnum(DocumentType)
+  type!: DocumentType;
 
   @ApiProperty({ example: '123456789' })
   @IsString()
@@ -40,9 +41,9 @@ export class CreateDocumentInput {
 }
 
 export class CreateAddressInput {
-  @ApiProperty({ enum: ['RESIDENTIAL', 'BILLING', 'SHIPPING'] })
-  @IsEnum(['RESIDENTIAL', 'BILLING', 'SHIPPING'])
-  type!: 'RESIDENTIAL' | 'BILLING' | 'SHIPPING';
+  @ApiProperty({ enum: AddressType })
+  @IsEnum(AddressType)
+  type!: AddressType;
 
   @ApiProperty({ example: '01001-000' })
   @IsString()

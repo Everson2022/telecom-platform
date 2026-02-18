@@ -248,6 +248,19 @@ export type XxxWithRelations = Prisma.XxxGetPayload<{ include: { relation: true 
 ```
 Retornar sempre o tipo com relacoes nas queries e commands — nunca retornar `any` ou tipo parcial.
 
+### DTOs SEMPRE devem usar enums do dominio
+**NUNCA** usar string literals em DTOs para valores que representam enums:
+- Proibido: `@IsEnum(['CONTROL', 'PREPAID', 'POSTPAID'])`, `type!: 'ACTIVE' | 'INACTIVE'`, `@ApiProperty({ enum: ['GB', 'MIN'] })`
+- **Obrigatorio:** importar e usar os enums de `../../domain/enums` (que re-exportam de `@prisma/client`)
+- Exemplo correto:
+  ```typescript
+  import { PlanType, FeatureUnit } from '../../domain/enums';
+  @IsEnum(PlanType)
+  type!: PlanType;
+  @ApiProperty({ enum: PlanType })
+  ```
+- Enums ficam em `src/domain/enums/index.ts` e re-exportam do Prisma Client gerado localmente
+
 ## Referencia
 
 - PRD principal: `docs/PRD-001-plataforma-telecom.md`

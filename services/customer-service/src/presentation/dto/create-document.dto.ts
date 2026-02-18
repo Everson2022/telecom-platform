@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsDateString, IsEnum, IsOptional, MaxLength } from 'class-validator';
+import { DocumentType } from '../../domain/enums';
 
 export class CreateDocumentDto {
-  @ApiProperty({ enum: ['CPF', 'RG', 'CNH', 'PASSPORT'] })
-  @IsEnum(['CPF', 'RG', 'CNH', 'PASSPORT'])
-  type!: 'CPF' | 'RG' | 'CNH' | 'PASSPORT';
+  @ApiProperty({ enum: DocumentType })
+  @IsEnum(DocumentType)
+  type!: DocumentType;
 
   @ApiProperty({ example: '123456789' })
   @IsString()

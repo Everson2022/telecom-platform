@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CustomerStatus, DocumentType, AddressType } from '../../domain/enums';
 
 export class DocumentResponseDto {
   @ApiProperty() id!: string;
-  @ApiProperty() type!: string;
+  @ApiProperty({ enum: DocumentType }) type!: DocumentType;
   @ApiProperty() number!: string;
   @ApiProperty() issuingAuthority!: string;
   @ApiProperty() issueDate!: string;
@@ -12,7 +13,7 @@ export class DocumentResponseDto {
 
 export class AddressResponseDto {
   @ApiProperty() id!: string;
-  @ApiProperty() type!: string;
+  @ApiProperty({ enum: AddressType }) type!: AddressType;
   @ApiProperty() zipCode!: string;
   @ApiProperty() street!: string;
   @ApiProperty() number!: string;
@@ -32,7 +33,7 @@ export class CustomerResponseDto {
   @ApiProperty() birthDate!: string;
   @ApiProperty() email!: string;
   @ApiProperty() phone!: string;
-  @ApiProperty({ enum: ['ACTIVE', 'SUSPENDED', 'CANCELLED'] }) status!: string;
+  @ApiProperty({ enum: CustomerStatus }) status!: CustomerStatus;
   @ApiProperty() createdAt!: string;
   @ApiProperty() updatedAt!: string;
   @ApiProperty({ type: [DocumentResponseDto] }) documents!: DocumentResponseDto[];

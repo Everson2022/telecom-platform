@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { OfferStatus, PriceLocalityStatus } from '../../domain/enums';
 import { PaginationDto } from './plan-response.dto';
 
 export class EligibilityRuleResponseDto {
@@ -13,7 +14,7 @@ export class PriceLocalityResponseDto {
   @ApiProperty({ required: false }) city?: string;
   @ApiProperty() priceAmountCents!: number;
   @ApiProperty() priceCurrency!: string;
-  @ApiProperty({ enum: ['ACTIVE', 'INACTIVE'] }) status!: string;
+  @ApiProperty({ enum: PriceLocalityStatus }) status!: PriceLocalityStatus;
 }
 
 export class OfferResponseDto {
@@ -22,7 +23,7 @@ export class OfferResponseDto {
   @ApiProperty() name!: string;
   @ApiProperty() basePriceAmountCents!: number;
   @ApiProperty() basePriceCurrency!: string;
-  @ApiProperty({ enum: ['ACTIVE', 'INACTIVE'] }) status!: string;
+  @ApiProperty({ enum: OfferStatus }) status!: OfferStatus;
   @ApiProperty() validFrom!: string;
   @ApiProperty({ required: false }) validUntil?: string;
   @ApiProperty() createdAt!: string;

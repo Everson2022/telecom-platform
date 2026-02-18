@@ -1,19 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PlanType, PlanStatus, FeatureUnit } from '../../domain/enums';
 
 export class PlanFeatureResponseDto {
   @ApiProperty() id!: string;
   @ApiProperty() name!: string;
   @ApiProperty() quota!: number;
-  @ApiProperty() unit!: string;
+  @ApiProperty({ enum: FeatureUnit }) unit!: FeatureUnit;
   @ApiProperty() unlimited!: boolean;
 }
 
 export class PlanResponseDto {
   @ApiProperty() id!: string;
   @ApiProperty() name!: string;
-  @ApiProperty({ enum: ['CONTROL', 'PREPAID', 'POSTPAID'] }) type!: string;
+  @ApiProperty({ enum: PlanType }) type!: PlanType;
   @ApiProperty() maxLines!: number;
-  @ApiProperty({ enum: ['ACTIVE', 'INACTIVE', 'DEPRECATED'] }) status!: string;
+  @ApiProperty({ enum: PlanStatus }) status!: PlanStatus;
   @ApiProperty({ type: [String] }) allowedPaymentMethods!: string[];
   @ApiProperty() createdAt!: string;
   @ApiProperty() updatedAt!: string;
