@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Domain Enums ─────────────────────────────────────────
+
+enum OrderType {
+  NEW_PLAN
+  ADD_LINE
+  SIM_SWAP
+  PLAN_CHANGE
+  CANCELLATION
+}
+
+enum OrderStatus {
+  CREATED
+  VALIDATING
+  PROCESSING
+  AWAITING_PAYMENT
+  AWAITING_SIM_DELIVERY
+  ACTIVATING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ─── Domain Models ─────────────────────────────────────────
+
+model Order {
+  id                String        @id @default(uuid()) @db.Uuid
+  customerId        String        @map("customer_id") @db.Uuid
+  type              OrderType
+  status            OrderStatus   @default(CREATED)
+  totalAmountCents  Int           @map("total_amount_cents")
+  currency          String        @default("BRL") @db.VarChar(3)
+  paymentMethodType String        @map("payment_method_type") @db.VarChar(10)
+  failureReason     String?       @map("failure_reason") @db.Text
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  completedAt       DateTime?     @map("completed_at")
+
+  items         OrderItem[]
+  sagaExecution SagaExecution?
+
+  @@index([customerId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id               String @id @default(uuid()) @db.Uuid
+  orderId          String @map("order_id") @db.Uuid
+  offerId          String @map("offer_id") @db.Uuid
+  quantity         Int    @default(1)
+  priceAmountCents Int    @map("price_amount_cents")
+  priceCurrency    String @default("BRL") @map("price_currency") @db.VarChar(3)
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@map("order_items")
+}
+
+model SagaExecution {
+  id            String    @id @default(uuid()) @db.Uuid
+  orderId       String    @unique @map("order_id") @db.Uuid
+  sagaType      String    @map("saga_type") @db.VarChar(50)
+  currentStep   String?   @map("current_step") @db.VarChar(100)
+  status        String    @default("RUNNING") @db.VarChar(30)
+  startedAt     DateTime  @default(now()) @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+  compensatedAt DateTime? @map("compensated_at")
+
+  order Order      @relation(fields: [orderId], references: [id])
+  steps SagaStep[]
+
+  @@map("saga_executions")
+}
+
+model SagaStep {
+  id              String    @id @default(uuid()) @db.Uuid
+  sagaExecutionId String    @map("saga_execution_id") @db.Uuid
+  stepName        String    @map("step_name") @db.VarChar(100)
+  stepOrder       Int       @map("step_order")
+  status          String    @default("PENDING") @db.VarChar(30)
+  executedAt      DateTime? @map("executed_at")
+  compensatedAt   DateTime? @map("compensated_at")
+  errorMessage    String?   @map("error_message") @db.Text
+  retryCount      Int       @default(0) @map("retry_count")
+
+  sagaExecution SagaExecution @relation(fields: [sagaExecutionId], references: [id])
+
+  @@unique([sagaExecutionId, stepName])
+  @@map("saga_steps")
+}
+
+// ─── Outbox Pattern ────────────────────────────────────────
+
+model OutboxEvent {
+  id            String    @id @default(uuid()) @db.Uuid
+  aggregateId   String    @map("aggregate_id") @db.VarChar(255)
+  aggregateType String    @map("aggregate_type") @db.VarChar(100)
+  eventType     String    @map("event_type") @db.VarChar(200)
+  payload       Json      @db.JsonB
+  correlationId String?   @map("correlation_id") @db.VarChar(255)
+  causationId   String?   @map("causation_id") @db.VarChar(255)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  publishedAt   DateTime? @map("published_at")
+  status        String    @default("PENDING") @db.VarChar(20)
+  retryCount    Int       @default(0) @map("retry_count")
+
+  @@index([status, createdAt])
+  @@map("outbox_events")
+}
+
+// ─── Idempotency ───────────────────────────────────────────
+
+model ProcessedEvent {
+  eventId     String   @id @map("event_id") @db.VarChar(255)
+  eventType   String   @map("event_type") @db.VarChar(200)
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("processed_events")
+}
