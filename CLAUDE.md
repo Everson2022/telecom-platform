@@ -281,6 +281,24 @@ Retornar sempre o tipo com relacoes nas queries e commands — nunca retornar `a
   ```
 - Tambem remover `@ApiQuery` manual — o Swagger le automaticamente do `@ApiProperty` do DTO
 
+### Exceptions de dominio em src/errors/
+**NUNCA** usar `NotFoundException`, `BadRequestException`, `ConflictException` diretamente no codigo de aplicacao:
+- Proibido: `throw new NotFoundException(`Plan ${id} not found`)`
+- **Obrigatorio:** criar uma exception especifica em `src/errors/` e usar a exception nomeada
+- Cada exception = 1 arquivo com nome descritivo (ex: `plan-not-found.exception.ts`)
+- A classe estende a exception NestJS base correspondente
+- Exportar tudo via `src/errors/index.ts`
+- Exemplo correto:
+  ```typescript
+  // src/errors/plan-not-found.exception.ts
+  export class PlanNotFoundException extends NotFoundException {
+    constructor(id: string) { super(`Plan ${id} not found`); }
+  }
+  // uso:
+  throw new PlanNotFoundException(id);
+  ```
+- Static factories para variantes: `PlanNotFoundException.byName(name)`, `CustomerNotFoundException.byCpf(cpf)`
+
 ### DTOs SEMPRE devem usar enums do dominio
 **NUNCA** usar string literals em DTOs para valores que representam enums:
 - Proibido: `@IsEnum(['CONTROL', 'PREPAID', 'POSTPAID'])`, `type!: 'ACTIVE' | 'INACTIVE'`, `@ApiProperty({ enum: ['GB', 'MIN'] })`
