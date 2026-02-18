@@ -27,6 +27,7 @@ Simulacao de uma plataforma real de telecom aderente ao **TM Forum Open Digital 
 |---|---|---|---|
 | `customer-service` | Party Management (TMF632/629) | :3001 | :50051 |
 | `catalog-service` | Product Catalog (TMF620) | :3002 | :50052 |
+| `order-service` | Product Ordering (TMF622) | :3003 | :50053 |
 
 ## Estrutura
 
@@ -36,7 +37,8 @@ telecom-platform/
 │   └── toolkit/          # @telecom/toolkit — biblioteca compartilhada entre servicos
 ├── services/
 │   ├── customer-service/ # Cadastro de clientes, documentos e enderecos
-│   └── catalog-service/  # Planos, ofertas e precos por localidade
+│   ├── catalog-service/  # Planos, ofertas e precos por localidade
+│   └── order-service/    # Pedidos de produto e gestao de ciclo de vida
 ├── docs/                 # PRDs com requisitos de cada dominio
 └── docker-compose.yml    # PostgreSQL + Kafka + Kafka UI
 ```
@@ -67,6 +69,7 @@ pnpm --filter @telecom/toolkit build
 # Rodar um servico em modo desenvolvimento
 pnpm --filter customer-service dev
 pnpm --filter catalog-service dev
+pnpm --filter order-service dev
 ```
 
 Kafka UI disponivel em `http://localhost:8080`.
@@ -76,4 +79,5 @@ Kafka UI disponivel em `http://localhost:8080`.
 ```bash
 pnpm --filter customer-service test   # 15 testes
 pnpm --filter catalog-service test    # 27 testes
+pnpm --filter order-service test      # 14 testes
 ```
