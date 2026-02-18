@@ -1,1 +1,3 @@
-export { CustomerStatus, DocumentType, AddressType } from '@prisma/client';
+export { CustomerStatus } from './customer-status.enum';
+export { DocumentType } from './document-type.enum';
+export { AddressType } from './address-type.enum';
