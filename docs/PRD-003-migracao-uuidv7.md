@@ -1,5 +1,11 @@
 # PRD-003 — Migração de UUIDv4 para UUIDv7
 
+**Data:** 2026-02-17
+**Status:** Proposto
+**Pacotes afetados:** `@telecom/toolkit`, `catalog-service`, `customer-service`
+
+---
+
 ## Visão Geral
 
 Este documento descreve a migração da geração de identificadores únicos de **UUIDv4** (aleatório)
