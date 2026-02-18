@@ -8,11 +8,11 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreatePlanDto } from '../dto/create-plan.dto';
 import { UpdatePlanDto } from '../dto/update-plan.dto';
+import { IdParamDto } from '../dto/id-param.dto';
 import { ListPlansQueryDto } from '../dto/list-plans-query.dto';
 import { PlanResponseDto, PlanListResponseDto } from '../dto/plan-response.dto';
 import { CreatePlanCommand } from '../../application/commands/create-plan.command';
@@ -54,8 +54,8 @@ export class PlanController {
   @ApiOperation({ summary: 'Buscar plano por ID' })
   @ApiResponse({ status: 200, type: PlanResponseDto })
   @ApiResponse({ status: 404, description: 'Plano nao encontrado' })
-  async findById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.getPlan.byId(id);
+  async findById(@Param() params: IdParamDto) {
+    return this.getPlan.byId(params.id);
   }
 
   @Patch(':id')
@@ -63,11 +63,8 @@ export class PlanController {
   @ApiResponse({ status: 200, type: PlanResponseDto })
   @ApiResponse({ status: 400, description: 'Plano nao esta ACTIVE' })
   @ApiResponse({ status: 404, description: 'Plano nao encontrado' })
-  async update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdatePlanDto,
-  ) {
-    return this.updatePlan.execute(id, dto);
+  async update(@Param() params: IdParamDto, @Body() dto: UpdatePlanDto) {
+    return this.updatePlan.execute(params.id, dto);
   }
 
   @Post(':id/deprecate')
@@ -76,7 +73,7 @@ export class PlanController {
   @ApiResponse({ status: 200, type: PlanResponseDto })
   @ApiResponse({ status: 400, description: 'Transicao de status invalida' })
   @ApiResponse({ status: 404, description: 'Plano nao encontrado' })
-  async deprecate(@Param('id', ParseUUIDPipe) id: string) {
-    return this.deprecatePlan.execute(id);
+  async deprecate(@Param() params: IdParamDto) {
+    return this.deprecatePlan.execute(params.id);
   }
 }

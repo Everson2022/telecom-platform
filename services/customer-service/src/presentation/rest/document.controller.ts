@@ -6,12 +6,13 @@ import {
   Body,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AddDocumentCommand } from '../../application/commands/add-document.command';
 import { VerifyDocumentCommand } from '../../application/commands/verify-document.command';
 import { CreateDocumentDto } from '../dto/create-document.dto';
+import { CustomerIdParamDto } from '../dto/customer-id-param.dto';
+import { CustomerDocumentParamDto } from '../dto/customer-document-param.dto';
 import { DocumentResponseDto } from '../dto/customer-response.dto';
 
 @ApiTags('Customer Documents')
@@ -27,11 +28,8 @@ export class DocumentController {
   @ApiOperation({ summary: 'Adicionar documento ao cliente' })
   @ApiResponse({ status: 201, type: DocumentResponseDto })
   @ApiResponse({ status: 404, description: 'Cliente nao encontrado' })
-  async create(
-    @Param('customerId', ParseUUIDPipe) customerId: string,
-    @Body() dto: CreateDocumentDto,
-  ) {
-    return this.addDocument.execute(customerId, dto);
+  async create(@Param() params: CustomerIdParamDto, @Body() dto: CreateDocumentDto) {
+    return this.addDocument.execute(params.customerId, dto);
   }
 
   @Patch(':documentId/verify')
@@ -39,10 +37,7 @@ export class DocumentController {
   @ApiOperation({ summary: 'Verificar documento' })
   @ApiResponse({ status: 200, type: DocumentResponseDto })
   @ApiResponse({ status: 404, description: 'Documento nao encontrado' })
-  async verify(
-    @Param('customerId', ParseUUIDPipe) customerId: string,
-    @Param('documentId', ParseUUIDPipe) documentId: string,
-  ) {
-    return this.verifyDocument.execute(customerId, documentId);
+  async verify(@Param() params: CustomerDocumentParamDto) {
+    return this.verifyDocument.execute(params.customerId, params.documentId);
   }
 }

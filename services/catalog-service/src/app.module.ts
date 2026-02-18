@@ -22,6 +22,7 @@ import { ListPlansQuery } from './application/queries/list-plans.query';
 import { GetOfferQuery } from './application/queries/get-offer.query';
 import { ListOffersQuery } from './application/queries/list-offers.query';
 import { GetOfferPriceByLocalityQuery } from './application/queries/get-offer-price-by-locality.query';
+import { ListLocalityPricesQuery } from './application/queries/list-locality-prices.query';
 
 // Controllers
 import { PlanController } from './presentation/rest/plan.controller';
@@ -57,6 +58,7 @@ import { PriceLocalityController } from './presentation/rest/price-locality.cont
     GetOfferQuery,
     ListOffersQuery,
     GetOfferPriceByLocalityQuery,
+    ListLocalityPricesQuery,
   ],
   exports: [PrismaService],
 })

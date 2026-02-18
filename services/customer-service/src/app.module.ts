@@ -12,6 +12,8 @@ import { AddAddressCommand } from './application/commands/add-address.command';
 import { ChangeStatusCommand } from './application/commands/change-status.command';
 import { GetCustomerQuery } from './application/queries/get-customer.query';
 import { ListCustomersQuery } from './application/queries/list-customers.query';
+import { ValidateCustomerQuery } from './application/queries/validate-customer.query';
+import { GetCustomerAddressesQuery } from './application/queries/get-customer-addresses.query';
 import { CustomerController } from './presentation/rest/customer.controller';
 import { DocumentController } from './presentation/rest/document.controller';
 import { AddressController } from './presentation/rest/address.controller';
@@ -38,6 +40,8 @@ import { CustomerGrpcController } from './infrastructure/grpc/customer-grpc.cont
     ChangeStatusCommand,
     GetCustomerQuery,
     ListCustomersQuery,
+    ValidateCustomerQuery,
+    GetCustomerAddressesQuery,
   ],
   exports: [PrismaService],
 })

@@ -1,36 +1,16 @@
 import { Injectable, NotFoundException, UseInterceptors } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { GrpcLoggingInterceptor, GrpcErrorMappingInterceptor } from '@telecom/toolkit/grpc';
-import { Prisma } from '@prisma/client';
 import { GetPlanQuery } from '../../application/queries/get-plan.query';
 import { ListPlansQuery } from '../../application/queries/list-plans.query';
 import { GetOfferQuery } from '../../application/queries/get-offer.query';
 import { GetOfferPriceByLocalityQuery } from '../../application/queries/get-offer-price-by-locality.query';
 import { PlanWithFeatures, OfferWithRelations } from '../../domain/types';
-import { PlanStatus } from '../../domain/enums';
-
-interface GetPlanByIdRequest {
-  planId: string;
-}
-
-interface ListPlansRequest {
-  status?: string;
-}
-
-interface GetOfferByIdRequest {
-  offerId: string;
-}
-
-interface GetOfferPriceByLocalityRequest {
-  offerId: string;
-  dddCode: string;
-  city?: string;
-}
-
-interface CheckEligibilityRequest {
-  offerId: string;
-  customerId: string;
-}
+import { GetPlanByIdDto } from './dto/get-plan-by-id.dto';
+import { ListPlansDto } from './dto/list-plans.dto';
+import { GetOfferByIdDto } from './dto/get-offer-by-id.dto';
+import { GetOfferPriceByLocalityDto } from './dto/get-offer-price-by-locality.dto';
+import { CheckEligibilityDto } from './dto/check-eligibility.dto';
 
 interface PlanGrpcResponse {
   id: string;
@@ -70,38 +50,30 @@ export class CatalogGrpcController {
   ) {}
 
   @GrpcMethod('CatalogQueryService', 'GetPlanById')
-  async getPlanById(data: GetPlanByIdRequest): Promise<PlanGrpcResponse> {
+  async getPlanById(data: GetPlanByIdDto): Promise<PlanGrpcResponse> {
     const plan = await this.getPlanQuery.byId(data.planId);
     return this.mapPlanToResponse(plan);
   }
 
   @GrpcMethod('CatalogQueryService', 'ListPlans')
-  async listPlans(data: ListPlansRequest): Promise<{ plans: PlanGrpcResponse[] }> {
-    const where: Prisma.PlanWhereInput = {};
-    if (data.status) {
-      where.status = data.status as PlanStatus;
-    }
-
-    const { data: plans } = await this.listPlansQuery.execute({
-      status: data.status as PlanStatus | undefined,
-    });
-
+  async listPlans(data: ListPlansDto): Promise<{ plans: PlanGrpcResponse[] }> {
+    const { data: plans } = await this.listPlansQuery.execute({ status: data.status });
     return { plans: plans.map((p) => this.mapPlanToResponse(p)) };
   }
 
   @GrpcMethod('CatalogQueryService', 'GetOfferById')
-  async getOfferById(data: GetOfferByIdRequest): Promise<OfferGrpcResponse> {
+  async getOfferById(data: GetOfferByIdDto): Promise<OfferGrpcResponse> {
     const offer = await this.getOfferQuery.byId(data.offerId);
     return this.mapOfferToResponse(offer);
   }
 
   @GrpcMethod('CatalogQueryService', 'GetOfferPriceByLocality')
-  async getOfferPriceByLocality(data: GetOfferPriceByLocalityRequest) {
+  async getOfferPriceByLocality(data: GetOfferPriceByLocalityDto) {
     return this.getOfferPriceByLocalityQuery.execute(data.offerId, data.dddCode, data.city);
   }
 
   @GrpcMethod('CatalogQueryService', 'CheckEligibility')
-  async checkEligibility(data: CheckEligibilityRequest): Promise<{ eligible: boolean; reason: string | null }> {
+  async checkEligibility(data: CheckEligibilityDto): Promise<{ eligible: boolean; reason: string | null }> {
     let offer: OfferWithRelations;
     try {
       offer = await this.getOfferQuery.byId(data.offerId);

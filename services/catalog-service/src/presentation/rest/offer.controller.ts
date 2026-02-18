@@ -7,10 +7,10 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateOfferDto } from '../dto/create-offer.dto';
+import { IdParamDto } from '../dto/id-param.dto';
 import { ListOffersQueryDto } from '../dto/list-offers-query.dto';
 import { OfferResponseDto, OfferListResponseDto } from '../dto/offer-response.dto';
 import { CreateOfferCommand } from '../../application/commands/create-offer.command';
@@ -50,8 +50,8 @@ export class OfferController {
   @ApiOperation({ summary: 'Buscar oferta por ID' })
   @ApiResponse({ status: 200, type: OfferResponseDto })
   @ApiResponse({ status: 404, description: 'Oferta nao encontrada' })
-  async findById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.getOffer.byId(id);
+  async findById(@Param() params: IdParamDto) {
+    return this.getOffer.byId(params.id);
   }
 
   @Post(':id/deactivate')
@@ -60,7 +60,7 @@ export class OfferController {
   @ApiResponse({ status: 200, type: OfferResponseDto })
   @ApiResponse({ status: 400, description: 'Oferta nao esta ACTIVE' })
   @ApiResponse({ status: 404, description: 'Oferta nao encontrada' })
-  async deactivate(@Param('id', ParseUUIDPipe) id: string) {
-    return this.deactivateOffer.execute(id);
+  async deactivate(@Param() params: IdParamDto) {
+    return this.deactivateOffer.execute(params.id);
   }
 }

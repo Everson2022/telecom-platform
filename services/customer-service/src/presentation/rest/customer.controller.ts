@@ -8,7 +8,6 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CustomerStatus } from '../../domain/enums';
@@ -19,6 +18,7 @@ import { GetCustomerQuery } from '../../application/queries/get-customer.query';
 import { ListCustomersQuery } from '../../application/queries/list-customers.query';
 import { CreateCustomerDto } from '../dto/create-customer.dto';
 import { UpdateCustomerDto } from '../dto/update-customer.dto';
+import { IdParamDto } from '../dto/id-param.dto';
 import { ListCustomersQueryDto } from '../dto/list-customers-query.dto';
 import { CustomerResponseDto, CustomerListResponseDto } from '../dto/customer-response.dto';
 
@@ -55,19 +55,16 @@ export class CustomerController {
   @ApiOperation({ summary: 'Buscar cliente por ID' })
   @ApiResponse({ status: 200, type: CustomerResponseDto })
   @ApiResponse({ status: 404, description: 'Cliente nao encontrado' })
-  async findById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.getCustomer.byId(id);
+  async findById(@Param() params: IdParamDto) {
+    return this.getCustomer.byId(params.id);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Atualizar dados do cliente' })
   @ApiResponse({ status: 200, type: CustomerResponseDto })
   @ApiResponse({ status: 404, description: 'Cliente nao encontrado' })
-  async update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateCustomerDto,
-  ) {
-    return this.updateCustomer.execute(id, dto);
+  async update(@Param() params: IdParamDto, @Body() dto: UpdateCustomerDto) {
+    return this.updateCustomer.execute(params.id, dto);
   }
 
   @Post(':id/suspend')
@@ -76,8 +73,8 @@ export class CustomerController {
   @ApiResponse({ status: 200, type: CustomerResponseDto })
   @ApiResponse({ status: 400, description: 'Transicao de status invalida' })
   @ApiResponse({ status: 404, description: 'Cliente nao encontrado' })
-  async suspend(@Param('id', ParseUUIDPipe) id: string) {
-    return this.changeStatus.execute(id, CustomerStatus.SUSPENDED);
+  async suspend(@Param() params: IdParamDto) {
+    return this.changeStatus.execute(params.id, CustomerStatus.SUSPENDED);
   }
 
   @Post(':id/reactivate')
@@ -86,8 +83,8 @@ export class CustomerController {
   @ApiResponse({ status: 200, type: CustomerResponseDto })
   @ApiResponse({ status: 400, description: 'Transicao de status invalida' })
   @ApiResponse({ status: 404, description: 'Cliente nao encontrado' })
-  async reactivate(@Param('id', ParseUUIDPipe) id: string) {
-    return this.changeStatus.execute(id, CustomerStatus.ACTIVE);
+  async reactivate(@Param() params: IdParamDto) {
+    return this.changeStatus.execute(params.id, CustomerStatus.ACTIVE);
   }
 
   @Post(':id/cancel')
@@ -96,7 +93,7 @@ export class CustomerController {
   @ApiResponse({ status: 200, type: CustomerResponseDto })
   @ApiResponse({ status: 400, description: 'Transicao de status invalida' })
   @ApiResponse({ status: 404, description: 'Cliente nao encontrado' })
-  async cancel(@Param('id', ParseUUIDPipe) id: string) {
-    return this.changeStatus.execute(id, CustomerStatus.CANCELLED);
+  async cancel(@Param() params: IdParamDto) {
+    return this.changeStatus.execute(params.id, CustomerStatus.CANCELLED);
   }
 }

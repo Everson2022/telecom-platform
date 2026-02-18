@@ -241,6 +241,18 @@ Segundo microsservico implementado. Gerencia planos, ofertas e precos por locali
 - Exemplo correto: `Controller → GetCustomerQuery → CustomerRepository`
 - Exemplo PROIBIDO: `Controller → CustomerRepository` (direto)
 
+### Todos os dados externos passam por DTO com class-validator
+**TUDO** que vem de fora (HTTP ou gRPC) DEVE passar por DTO com decorators de validacao:
+- `@Body()` → DTO de criacao/atualizacao (ex: `CreatePlanDto`)
+- `@Query()` → Query DTO com `@IsOptional()`, `@Type(() => Number)`, `@IsEnum()` (ex: `ListPlansQueryDto`)
+- `@Param()` → Param DTO com `@IsUUID()` (ex: `IdParamDto`, `CustomerIdParamDto`)
+- gRPC `data:` → DTO com class-validator (ex: `GetPlanByIdDto { @IsUUID() planId }`)
+- Proibido: `@Param('id', ParseUUIDPipe) id: string` — usar `@Param() params: IdParamDto`
+- Proibido: `@Query('dddCode') dddCode: string` — usar `@Query() query: GetLocalityPriceQueryDto`
+- Proibido: `data: { customerId: string }` em gRPC — usar `data: GetCustomerByIdDto`
+- Param DTOs ficam em `src/presentation/dto/` com nome descritivo (ex: `offer-id-param.dto.ts`)
+- gRPC DTOs ficam em `src/infrastructure/grpc/dto/`
+
 ### Tipos de dominio para entidades com relacoes
 Criar `src/domain/types/index.ts` em cada servico com:
 ```typescript
