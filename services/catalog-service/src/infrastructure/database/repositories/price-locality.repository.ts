@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, PriceLocality } from '@prisma/client';
 import { PrismaService, PrismaTransactionClient } from '../prisma.service';
+import { PriceLocalityStatus } from '../../../domain/enums';
 
 @Injectable()
 export class PriceLocalityRepository {
@@ -33,7 +34,7 @@ export class PriceLocalityRepository {
         offerId,
         dddCode,
         city: city ?? null,
-        status: 'ACTIVE',
+        status: PriceLocalityStatus.ACTIVE,
       },
     });
   }
