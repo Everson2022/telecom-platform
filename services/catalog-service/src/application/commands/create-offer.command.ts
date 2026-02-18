@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { PlanNotFoundException, PlanNotActiveException, InvalidPriceException, InvalidOfferDateRangeException } from '../../errors';
 import { Prisma } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
@@ -19,21 +20,21 @@ export class CreateOfferCommand {
   async execute(dto: CreateOfferDto): Promise<string> {
     const plan = await this.planRepo.findById(dto.planId);
     if (!plan) {
-      throw new NotFoundException(`Plan ${dto.planId} not found`);
+      throw new PlanNotFoundException(dto.planId);
     }
     if (plan.status !== 'ACTIVE') {
-      throw new BadRequestException('Plan must be ACTIVE to create an offer');
+      throw new PlanNotActiveException('Plan must be ACTIVE to create an offer');
     }
 
     if (dto.basePriceAmountCents <= 0) {
-      throw new BadRequestException('Base price must be greater than 0');
+      throw new InvalidPriceException('Base price must be greater than 0');
     }
 
     const validFrom = new Date(dto.validFrom);
     if (dto.validUntil) {
       const validUntil = new Date(dto.validUntil);
       if (validFrom >= validUntil) {
-        throw new BadRequestException('validFrom must be before validUntil');
+        throw new InvalidOfferDateRangeException();
       }
     }
 

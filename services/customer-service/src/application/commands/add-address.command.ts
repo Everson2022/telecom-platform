@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { CustomerNotFoundException } from '../../errors';
 import { CustomerAddress } from '@prisma/client';
 import { OutboxRepository } from '@telecom/toolkit';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,7 +20,7 @@ export class AddAddressCommand {
   async execute(customerId: string, dto: CreateAddressDto): Promise<CustomerAddress> {
     const exists = await this.customerRepo.exists(customerId);
     if (!exists) {
-      throw new NotFoundException(`Customer ${customerId} not found`);
+      throw new CustomerNotFoundException(customerId);
     }
 
     const addressId = uuidv4();

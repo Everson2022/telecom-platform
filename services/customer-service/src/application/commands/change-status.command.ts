@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { CustomerNotFoundException, InvalidStatusTransitionException } from '../../errors';
 import { OutboxRepository } from '@telecom/toolkit';
 import { CustomerStatus } from '@prisma/client';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
@@ -31,14 +32,12 @@ export class ChangeStatusCommand {
   async execute(customerId: string, newStatus: CustomerStatus): Promise<CustomerWithRelations> {
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
-      throw new NotFoundException(`Customer ${customerId} not found`);
+      throw new CustomerNotFoundException(customerId);
     }
 
     const allowedTransitions = STATUS_TRANSITIONS[customer.status as CustomerStatus];
     if (!allowedTransitions.includes(newStatus)) {
-      throw new BadRequestException(
-        `Cannot transition from ${customer.status} to ${newStatus}`,
-      );
+      throw new InvalidStatusTransitionException(customer.status, newStatus);
     }
 
     const eventType = STATUS_EVENT_MAP[`${customer.status}->${newStatus}`];

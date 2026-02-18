@@ -1,4 +1,5 @@
-import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { CpfAlreadyRegisteredException, EmailAlreadyRegisteredException, CustomerRequiresDocumentException, CustomerRequiresAddressException, CustomerRequiresResidentialAddressException } from '../../errors';
 import { CPF, Email, PhoneNumber, OutboxRepository } from '@telecom/toolkit';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
@@ -22,25 +23,25 @@ export class RegisterCustomerCommand {
 
     const existingByCpf = await this.customerRepo.findByCpf(cpf.toString());
     if (existingByCpf) {
-      throw new ConflictException('CPF already registered');
+      throw new CpfAlreadyRegisteredException();
     }
 
     const existingByEmail = await this.customerRepo.findByEmail(email.toString());
     if (existingByEmail) {
-      throw new ConflictException('Email already registered');
+      throw new EmailAlreadyRegisteredException();
     }
 
     if (!dto.documents || dto.documents.length === 0) {
-      throw new BadRequestException('At least one document is required');
+      throw new CustomerRequiresDocumentException();
     }
 
     if (!dto.addresses || dto.addresses.length === 0) {
-      throw new BadRequestException('At least one address is required');
+      throw new CustomerRequiresAddressException();
     }
 
     const hasResidential = dto.addresses.some((a) => a.type === 'RESIDENTIAL');
     if (!hasResidential) {
-      throw new BadRequestException('At least one RESIDENTIAL address is required');
+      throw new CustomerRequiresResidentialAddressException();
     }
 
     const customerId = uuidv4();

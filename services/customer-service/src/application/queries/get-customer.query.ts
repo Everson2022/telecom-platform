@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { CustomerNotFoundException } from '../../errors';
 import { CustomerRepository } from '../../infrastructure/database/repositories/customer.repository';
 import { CustomerWithRelations } from '../../domain/types';
 
@@ -9,7 +10,7 @@ export class GetCustomerQuery {
   async byId(id: string): Promise<CustomerWithRelations> {
     const customer = await this.customerRepo.findById(id);
     if (!customer) {
-      throw new NotFoundException(`Customer ${id} not found`);
+      throw new CustomerNotFoundException(id);
     }
     return customer;
   }
@@ -17,7 +18,7 @@ export class GetCustomerQuery {
   async byCpf(cpf: string): Promise<CustomerWithRelations> {
     const customer = await this.customerRepo.findByCpf(cpf);
     if (!customer) {
-      throw new NotFoundException(`Customer with CPF ${cpf} not found`);
+      throw CustomerNotFoundException.byCpf(cpf);
     }
     return customer;
   }

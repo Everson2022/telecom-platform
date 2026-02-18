@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { OfferNotFoundException, OfferNotActiveException } from '../../errors';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { OfferRepository } from '../../infrastructure/database/repositories/offer.repository';
@@ -17,11 +18,11 @@ export class DeactivateOfferCommand {
   async execute(id: string): Promise<OfferWithRelations> {
     const offer = await this.offerRepo.findById(id);
     if (!offer) {
-      throw new NotFoundException(`Offer ${id} not found`);
+      throw new OfferNotFoundException(id);
     }
 
     if (offer.status !== 'ACTIVE') {
-      throw new BadRequestException('Only ACTIVE offers can be deactivated');
+      throw new OfferNotActiveException('Only ACTIVE offers can be deactivated');
     }
 
     await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
@@ -43,7 +44,7 @@ export class DeactivateOfferCommand {
 
     const updated = await this.offerRepo.findById(id);
     if (!updated) {
-      throw new NotFoundException(`Offer ${id} not found after deactivation`);
+      throw new OfferNotFoundException(id);
     }
     return updated;
   }

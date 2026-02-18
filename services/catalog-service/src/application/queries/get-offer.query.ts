@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { OfferNotFoundException } from '../../errors';
 import { OfferRepository } from '../../infrastructure/database/repositories/offer.repository';
 
 @Injectable()
@@ -8,7 +9,7 @@ export class GetOfferQuery {
   async byId(id: string) {
     const offer = await this.offerRepo.findById(id);
     if (!offer) {
-      throw new NotFoundException(`Offer ${id} not found`);
+      throw new OfferNotFoundException(id);
     }
     return offer;
   }

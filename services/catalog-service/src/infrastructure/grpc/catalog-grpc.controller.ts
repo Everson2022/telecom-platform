@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, UseInterceptors } from '@nestjs/common';
+import { Injectable, UseInterceptors } from '@nestjs/common';
+import { OfferNotFoundException } from '../../errors';
 import { GrpcMethod } from '@nestjs/microservices';
 import { GrpcLoggingInterceptor, GrpcErrorMappingInterceptor } from '@telecom/toolkit/grpc';
 import { GetPlanQuery } from '../../application/queries/get-plan.query';
@@ -78,7 +79,7 @@ export class CatalogGrpcController {
     try {
       offer = await this.getOfferQuery.byId(data.offerId);
     } catch {
-      throw new NotFoundException(`Offer ${data.offerId} not found`);
+      throw new OfferNotFoundException(data.offerId);
     }
 
     if (offer.status !== 'ACTIVE') {

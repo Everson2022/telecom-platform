@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { OfferNotFoundException, OfferNotActiveException, InvalidPriceException } from '../../errors';
 import { v4 as uuidv4 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
@@ -25,15 +26,15 @@ export class SetLocalityPriceCommand {
   async execute(offerId: string, dto: SetLocalityPriceDto): Promise<SetLocalityPriceResult> {
     const offer = await this.offerRepo.findById(offerId);
     if (!offer) {
-      throw new NotFoundException(`Offer ${offerId} not found`);
+      throw new OfferNotFoundException(offerId);
     }
 
     if (offer.status !== 'ACTIVE') {
-      throw new BadRequestException('Only ACTIVE offers can have prices set');
+      throw new OfferNotActiveException('Only ACTIVE offers can have prices set');
     }
 
     if (dto.priceAmountCents <= 0) {
-      throw new BadRequestException('Price must be greater than 0');
+      throw new InvalidPriceException();
     }
 
     const city = dto.city ?? null;

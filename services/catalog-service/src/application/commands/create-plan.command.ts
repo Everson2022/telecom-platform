@@ -1,4 +1,5 @@
-import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { PlanNameConflictException } from '../../errors';
 import { v4 as uuidv4 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
@@ -25,7 +26,7 @@ export class CreatePlanCommand {
   async execute(dto: CreatePlanDto): Promise<string> {
     const existingByName = await this.planRepo.findByName(dto.name);
     if (existingByName) {
-      throw new ConflictException('Plan name already exists');
+      throw new PlanNameConflictException();
     }
 
     const expectedMaxLines = MAX_LINES_BY_TYPE[dto.type as PlanType];

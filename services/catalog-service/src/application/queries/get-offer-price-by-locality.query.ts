@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { OfferNotFoundException } from '../../errors';
 import { OfferRepository } from '../../infrastructure/database/repositories/offer.repository';
 import { PriceLocalityRepository } from '../../infrastructure/database/repositories/price-locality.repository';
 
@@ -12,7 +13,7 @@ export class GetOfferPriceByLocalityQuery {
   async execute(offerId: string, dddCode: string, city?: string) {
     const offer = await this.offerRepo.findById(offerId);
     if (!offer) {
-      throw new NotFoundException(`Offer ${offerId} not found`);
+      throw new OfferNotFoundException(offerId);
     }
 
     // Tentar buscar preco especifico por cidade

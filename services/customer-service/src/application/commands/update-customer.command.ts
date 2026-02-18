@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { CustomerNotFoundException } from '../../errors';
 import { Prisma } from '@prisma/client';
 import { Email, PhoneNumber, OutboxRepository } from '@telecom/toolkit';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
@@ -19,7 +20,7 @@ export class UpdateCustomerCommand {
   async execute(customerId: string, dto: UpdateCustomerDto): Promise<CustomerWithRelations> {
     const customer = await this.customerRepo.findById(customerId);
     if (!customer) {
-      throw new NotFoundException(`Customer ${customerId} not found`);
+      throw new CustomerNotFoundException(customerId);
     }
 
     const updateData: Prisma.CustomerUpdateInput = {};

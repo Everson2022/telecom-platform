@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { PlanNotFoundException, PlanNotActiveException } from '../../errors';
 import { Prisma } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
@@ -21,11 +22,11 @@ export class UpdatePlanCommand {
   async execute(id: string, dto: UpdatePlanDto): Promise<PlanWithFeatures> {
     const plan = await this.planRepo.findById(id);
     if (!plan) {
-      throw new NotFoundException(`Plan ${id} not found`);
+      throw new PlanNotFoundException(id);
     }
 
     if ((plan.status as PlanStatus) !== 'ACTIVE') {
-      throw new BadRequestException('Only ACTIVE plans can be updated');
+      throw new PlanNotActiveException('Only ACTIVE plans can be updated');
     }
 
     await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
@@ -69,7 +70,7 @@ export class UpdatePlanCommand {
 
     const updated = await this.planRepo.findById(id);
     if (!updated) {
-      throw new NotFoundException(`Plan ${id} not found after update`);
+      throw new PlanNotFoundException(id);
     }
     return updated;
   }

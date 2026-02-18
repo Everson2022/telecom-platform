@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { DocumentNotFoundException } from '../../errors';
 import { CustomerDocument } from '@prisma/client';
 import { OutboxRepository } from '@telecom/toolkit';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
@@ -17,7 +18,7 @@ export class VerifyDocumentCommand {
   async execute(customerId: string, documentId: string): Promise<CustomerDocument> {
     const document = await this.documentRepo.findById(documentId);
     if (!document || document.customerId !== customerId) {
-      throw new NotFoundException(`Document ${documentId} not found for customer ${customerId}`);
+      throw new DocumentNotFoundException(documentId, customerId);
     }
 
     return this.prisma.$transaction(async (tx: PrismaTransactionClient) => {

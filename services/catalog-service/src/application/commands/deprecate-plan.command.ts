@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { PlanNotFoundException, PlanCannotBeDeprecatedException } from '../../errors';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { PlanRepository } from '../../infrastructure/database/repositories/plan.repository';
@@ -18,12 +19,12 @@ export class DeprecatePlanCommand {
   async execute(id: string): Promise<PlanWithFeatures> {
     const plan = await this.planRepo.findById(id);
     if (!plan) {
-      throw new NotFoundException(`Plan ${id} not found`);
+      throw new PlanNotFoundException(id);
     }
 
     const status = plan.status as PlanStatus;
     if (status !== 'ACTIVE' && status !== 'INACTIVE') {
-      throw new BadRequestException('Only ACTIVE or INACTIVE plans can be deprecated');
+      throw new PlanCannotBeDeprecatedException();
     }
 
     await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
@@ -45,7 +46,7 @@ export class DeprecatePlanCommand {
 
     const updated = await this.planRepo.findById(id);
     if (!updated) {
-      throw new NotFoundException(`Plan ${id} not found after deprecation`);
+      throw new PlanNotFoundException(id);
     }
     return updated;
   }
