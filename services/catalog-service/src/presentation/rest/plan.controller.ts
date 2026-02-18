@@ -10,16 +10,16 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreatePlanDto } from '../dto/create-plan.dto';
 import { UpdatePlanDto } from '../dto/update-plan.dto';
+import { ListPlansQueryDto } from '../dto/list-plans-query.dto';
 import { PlanResponseDto, PlanListResponseDto } from '../dto/plan-response.dto';
 import { CreatePlanCommand } from '../../application/commands/create-plan.command';
 import { UpdatePlanCommand } from '../../application/commands/update-plan.command';
 import { DeprecatePlanCommand } from '../../application/commands/deprecate-plan.command';
 import { GetPlanQuery } from '../../application/queries/get-plan.query';
 import { ListPlansQuery } from '../../application/queries/list-plans.query';
-import { PlanStatus, PlanType } from '../../domain/enums';
 
 @ApiTags('Plans')
 @Controller('plans')
@@ -45,26 +45,9 @@ export class PlanController {
 
   @Get()
   @ApiOperation({ summary: 'Listar planos (paginado)' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'pageSize', required: false, type: Number })
-  @ApiQuery({ name: 'status', required: false, enum: ['ACTIVE', 'INACTIVE', 'DEPRECATED'] })
-  @ApiQuery({ name: 'type', required: false, enum: ['CONTROL', 'PREPAID', 'POSTPAID'] })
-  @ApiQuery({ name: 'search', required: false, type: String })
   @ApiResponse({ status: 200, type: PlanListResponseDto })
-  async list(
-    @Query('page') page?: string,
-    @Query('pageSize') pageSize?: string,
-    @Query('status') status?: PlanStatus,
-    @Query('type') type?: PlanType,
-    @Query('search') search?: string,
-  ) {
-    return this.listPlans.execute({
-      page: page ? parseInt(page, 10) : undefined,
-      pageSize: pageSize ? parseInt(pageSize, 10) : undefined,
-      status,
-      type,
-      search,
-    });
+  async list(@Query() query: ListPlansQueryDto) {
+    return this.listPlans.execute(query);
   }
 
   @Get(':id')

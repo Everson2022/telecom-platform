@@ -10,8 +10,8 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
-import { CustomerStatus } from '@prisma/client';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CustomerStatus } from '../../domain/enums';
 import { RegisterCustomerCommand } from '../../application/commands/register-customer.command';
 import { UpdateCustomerCommand } from '../../application/commands/update-customer.command';
 import { ChangeStatusCommand } from '../../application/commands/change-status.command';
@@ -19,6 +19,7 @@ import { GetCustomerQuery } from '../../application/queries/get-customer.query';
 import { ListCustomersQuery } from '../../application/queries/list-customers.query';
 import { CreateCustomerDto } from '../dto/create-customer.dto';
 import { UpdateCustomerDto } from '../dto/update-customer.dto';
+import { ListCustomersQueryDto } from '../dto/list-customers-query.dto';
 import { CustomerResponseDto, CustomerListResponseDto } from '../dto/customer-response.dto';
 
 @ApiTags('Customers')
@@ -45,23 +46,9 @@ export class CustomerController {
 
   @Get()
   @ApiOperation({ summary: 'Listar clientes (paginado)' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'pageSize', required: false, type: Number })
-  @ApiQuery({ name: 'status', required: false, enum: ['ACTIVE', 'SUSPENDED', 'CANCELLED'] })
-  @ApiQuery({ name: 'search', required: false, type: String })
   @ApiResponse({ status: 200, type: CustomerListResponseDto })
-  async list(
-    @Query('page') page?: string,
-    @Query('pageSize') pageSize?: string,
-    @Query('status') status?: CustomerStatus,
-    @Query('search') search?: string,
-  ) {
-    return this.listCustomers.execute({
-      page: page ? parseInt(page, 10) : undefined,
-      pageSize: pageSize ? parseInt(pageSize, 10) : undefined,
-      status,
-      search,
-    });
+  async list(@Query() query: ListCustomersQueryDto) {
+    return this.listCustomers.execute(query);
   }
 
   @Get(':id')

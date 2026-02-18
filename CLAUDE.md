@@ -248,6 +248,27 @@ export type XxxWithRelations = Prisma.XxxGetPayload<{ include: { relation: true 
 ```
 Retornar sempre o tipo com relacoes nas queries e commands — nunca retornar `any` ou tipo parcial.
 
+### Query Params SEMPRE via DTO validado
+**NUNCA** usar `@Query('param') param?: string` solto em controllers para listagens:
+- Proibido: `@Query('page') page?: string`, `@Query('status') status?: OfferStatus` sem validacao
+- **Obrigatorio:** criar um Query DTO com `class-validator` e usar `@Query() query: ListXxxQueryDto`
+- Campos numericos: `@Type(() => Number)` + `@IsInt()` + `@Min(1)` (transforma string da URL para number)
+- Campos enum: `@IsEnum(XxxStatus)` com o enum do dominio
+- Campos string: `@IsString()` + `@MaxLength()`
+- Todos os campos: `@IsOptional()` para query params opcionais
+- Exemplo correto:
+  ```typescript
+  // list-plans-query.dto.ts
+  export class ListPlansQueryDto {
+    @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
+    @IsOptional() @IsEnum(PlanStatus) status?: PlanStatus;
+    @IsOptional() @IsString() @MaxLength(255) search?: string;
+  }
+  // plan.controller.ts
+  async list(@Query() query: ListPlansQueryDto) { ... }
+  ```
+- Tambem remover `@ApiQuery` manual — o Swagger le automaticamente do `@ApiProperty` do DTO
+
 ### DTOs SEMPRE devem usar enums do dominio
 **NUNCA** usar string literals em DTOs para valores que representam enums:
 - Proibido: `@IsEnum(['CONTROL', 'PREPAID', 'POSTPAID'])`, `type!: 'ACTIVE' | 'INACTIVE'`, `@ApiProperty({ enum: ['GB', 'MIN'] })`

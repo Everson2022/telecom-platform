@@ -9,14 +9,14 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateOfferDto } from '../dto/create-offer.dto';
+import { ListOffersQueryDto } from '../dto/list-offers-query.dto';
 import { OfferResponseDto, OfferListResponseDto } from '../dto/offer-response.dto';
 import { CreateOfferCommand } from '../../application/commands/create-offer.command';
 import { DeactivateOfferCommand } from '../../application/commands/deactivate-offer.command';
 import { GetOfferQuery } from '../../application/queries/get-offer.query';
 import { ListOffersQuery } from '../../application/queries/list-offers.query';
-import { OfferStatus } from '../../domain/enums';
 
 @ApiTags('Offers')
 @Controller('offers')
@@ -41,26 +41,9 @@ export class OfferController {
 
   @Get()
   @ApiOperation({ summary: 'Listar ofertas (paginado)' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'pageSize', required: false, type: Number })
-  @ApiQuery({ name: 'status', required: false, enum: ['ACTIVE', 'INACTIVE'] })
-  @ApiQuery({ name: 'planId', required: false, type: String })
-  @ApiQuery({ name: 'search', required: false, type: String })
   @ApiResponse({ status: 200, type: OfferListResponseDto })
-  async list(
-    @Query('page') page?: string,
-    @Query('pageSize') pageSize?: string,
-    @Query('status') status?: OfferStatus,
-    @Query('planId') planId?: string,
-    @Query('search') search?: string,
-  ) {
-    return this.listOffers.execute({
-      page: page ? parseInt(page, 10) : undefined,
-      pageSize: pageSize ? parseInt(pageSize, 10) : undefined,
-      status,
-      planId,
-      search,
-    });
+  async list(@Query() query: ListOffersQueryDto) {
+    return this.listOffers.execute(query);
   }
 
   @Get(':id')
