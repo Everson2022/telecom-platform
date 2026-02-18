@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PlanNotFoundException, PlanNotActiveException, InvalidPriceException } from '../../errors';
+import { PlanNotFoundException, PlanNotActiveException } from '../../errors';
 import { Prisma } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
@@ -24,10 +24,6 @@ export class CreateOfferCommand {
     }
     if (plan.status !== 'ACTIVE') {
       throw new PlanNotActiveException('Plan must be ACTIVE to create an offer');
-    }
-
-    if (dto.basePriceAmountCents <= 0) {
-      throw new InvalidPriceException('Base price must be greater than 0');
     }
 
     const validFrom = new Date(dto.validFrom);

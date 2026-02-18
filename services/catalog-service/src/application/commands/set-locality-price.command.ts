@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OfferNotFoundException, OfferNotActiveException, InvalidPriceException } from '../../errors';
+import { OfferNotFoundException, OfferNotActiveException } from '../../errors';
 import { v4 as uuidv4 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
@@ -31,10 +31,6 @@ export class SetLocalityPriceCommand {
 
     if (offer.status !== 'ACTIVE') {
       throw new OfferNotActiveException('Only ACTIVE offers can have prices set');
-    }
-
-    if (dto.priceAmountCents <= 0) {
-      throw new InvalidPriceException();
     }
 
     const city = dto.city ?? null;

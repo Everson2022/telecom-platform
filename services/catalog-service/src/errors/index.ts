@@ -4,6 +4,5 @@ export { PlanNameConflictException } from './plan-name-conflict.exception';
 export { PlanNotActiveException } from './plan-not-active.exception';
 export { OfferNotActiveException } from './offer-not-active.exception';
 export { PlanCannotBeDeprecatedException } from './plan-cannot-be-deprecated.exception';
-export { InvalidPriceException } from './invalid-price.exception';
 export { ControlPlanRequiresFeaturesException } from './control-plan-requires-features.exception';
 export { InvalidMaxLinesException } from './invalid-max-lines.exception';

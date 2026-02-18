@@ -98,12 +98,6 @@ describe('CreateOfferCommand', () => {
     await expect(command.execute(validDto)).rejects.toThrow(BadRequestException);
   });
 
-  it('deve rejeitar preco zero ou negativo', async () => {
-    const dto = { ...validDto, basePriceAmountCents: 0 };
-
-    await expect(command.execute(dto)).rejects.toThrow(BadRequestException);
-  });
-
   it('deve criar oferta sem validUntil', async () => {
     const dto = { ...validDto, validUntil: undefined };
 

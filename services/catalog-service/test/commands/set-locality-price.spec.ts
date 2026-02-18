@@ -109,12 +109,6 @@ describe('SetLocalityPriceCommand', () => {
     await expect(command.execute('offer-1', validDto)).rejects.toThrow(BadRequestException);
   });
 
-  it('deve rejeitar preco zero ou negativo', async () => {
-    const dto = { ...validDto, priceAmountCents: 0 };
-
-    await expect(command.execute('offer-1', dto)).rejects.toThrow(BadRequestException);
-  });
-
   it('deve aceitar preco sem cidade (apenas DDD) — city sera null', async () => {
     const dto = { ...validDto, city: undefined };
 

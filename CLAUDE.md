@@ -299,6 +299,15 @@ Retornar sempre o tipo com relacoes nas queries e commands — nunca retornar `a
   ```
 - Static factories para variantes: `PlanNotFoundException.byName(name)`, `CustomerNotFoundException.byCpf(cpf)`
 
+### Validacao de entrada SEMPRE no DTO — nunca no use case
+**TUDO** que pode ser validado no DTO (via `class-validator`) DEVE ser validado la, nunca no command/query:
+- Proibido: `if (dto.price <= 0) throw new InvalidPriceException()` em command quando o DTO ja tem `@Min(1)`
+- Proibido: `if (!dto.validUntil || dto.validUntil <= dto.validFrom) throw new InvalidDateRangeException()` em command
+- **Obrigatorio:** usar decorators nativos (`@Min`, `@IsUUID`, `@IsEnum`, `@IsDateString`) para validacoes simples
+- **Obrigatorio:** criar custom validators (em `src/presentation/validators/`) para validacoes cross-field
+- Exemplo correto de cross-field: `@IsAfterDate('validFrom')` no campo `validUntil`
+- Excecoes que devem ficar no command: validacoes que requerem estado do banco (ex: checar status atual do agregado, relacoes entre entidades)
+
 ### DTOs SEMPRE devem usar enums do dominio
 **NUNCA** usar string literals em DTOs para valores que representam enums:
 - Proibido: `@IsEnum(['CONTROL', 'PREPAID', 'POSTPAID'])`, `type!: 'ACTIVE' | 'INACTIVE'`, `@ApiProperty({ enum: ['GB', 'MIN'] })`
