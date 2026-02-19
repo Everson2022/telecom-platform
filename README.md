@@ -30,6 +30,7 @@ Simulacao de uma plataforma real de telecom aderente ao **TM Forum Open Digital 
 | `order-service` | Product Ordering (TMF622) | :3003 | :50053 |
 | `payment-service` | Payment Management (TMF676/666) | :3004 | :50054 |
 | `sim-management-service` | Resource Inventory (TMF639) | :3005 | :50055 |
+| `activation-service` | Service Activation (TMF640) | :3006 | :50056 |
 
 ## Estrutura
 
@@ -42,7 +43,8 @@ telecom-platform/
 │   ├── catalog-service/         # Planos, ofertas e precos por localidade
 │   ├── order-service/           # Pedidos de produto, orquestracao de Sagas
 │   ├── payment-service/         # Pagamentos (cartao/PIX), recorrencia, historico
-│   └── sim-management-service/  # Estoque de SIMs, alocacao, troca (swap)
+│   ├── sim-management-service/  # Estoque de SIMs, alocacao, troca (swap)
+│   └── activation-service/      # Ativacao de linhas no CORE de rede (fake HLR/HSS)
 ├── docs/                  # PRDs com requisitos de cada dominio
 └── docker-compose.yml     # PostgreSQL + Kafka + Kafka UI
 ```
@@ -76,6 +78,7 @@ pnpm --filter catalog-service dev
 pnpm --filter order-service dev
 pnpm --filter payment-service dev
 pnpm --filter sim-management-service dev
+pnpm --filter activation-service dev
 ```
 
 Kafka UI disponivel em `http://localhost:8080`.
@@ -88,4 +91,5 @@ pnpm --filter catalog-service test         # 27 testes
 pnpm --filter order-service test           # 14 testes
 pnpm --filter payment-service test         # 22 testes
 pnpm --filter sim-management-service test  # 21 testes
+pnpm --filter activation-service test      # 15 testes
 ```

@@ -1,0 +1,7 @@
+export enum MsisdnStatus {
+  AVAILABLE = 'AVAILABLE',
+  RESERVED = 'RESERVED',
+  ACTIVE = 'ACTIVE',
+  QUARANTINE = 'QUARANTINE',
+  RETIRED = 'RETIRED',
+}
