@@ -1,0 +1,7 @@
+export enum BillingCycleStatus {
+  GENERATED = 'GENERATED',
+  PAYMENT_PENDING = 'PAYMENT_PENDING',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
+  CANCELLED = 'CANCELLED',
+}

@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PlanType {
+  CONTROL
+  PREPAID
+  POSTPAID
+}
+
+enum SubscriptionStatus {
+  PENDING_ACTIVATION
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum LineStatus {
+  PENDING_ACTIVATION
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum LineRole {
+  TITULAR
+  MEMBER
+}
+
+enum MemberStatus {
+  INVITED
+  ACTIVE
+  REMOVED
+}
+
+model Subscription {
+  id                 String             @id @default(uuid()) @db.Uuid
+  customerId         String             @map("customer_id") @db.Uuid
+  planId             String             @map("plan_id") @db.Uuid
+  offerId            String             @map("offer_id") @db.Uuid
+  planType           PlanType           @map("plan_type")
+  status             SubscriptionStatus @default(PENDING_ACTIVATION)
+  paymentMethodId    String?            @map("payment_method_id") @db.Uuid
+  monthlyAmountCents Int                @map("monthly_amount_cents")
+  currency           String             @default("BRL") @db.VarChar(3)
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  lines       ServiceLine[]
+  familyGroup FamilyGroup?
+
+  @@index([customerId])
+  @@index([customerId, planType])
+  @@map("subscriptions")
+}
+
+model ServiceLine {
+  id             String     @id @default(uuid()) @db.Uuid
+  subscriptionId String     @map("subscription_id") @db.Uuid
+  customerId     String     @map("customer_id") @db.Uuid
+  msisdn         String     @unique @db.VarChar(20)
+  iccid          String     @db.VarChar(22)
+  simType        String     @map("sim_type") @db.VarChar(10)
+  role           LineRole
+  status         LineStatus @default(PENDING_ACTIVATION)
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@index([subscriptionId])
+  @@map("service_lines")
+}
+
+model FamilyGroup {
+  id                String   @id @default(uuid()) @db.Uuid
+  subscriptionId    String   @unique @map("subscription_id") @db.Uuid
+  titularCustomerId String   @map("titular_customer_id") @db.Uuid
+  maxMembers        Int      @default(5) @map("max_members")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  subscription Subscription   @relation(fields: [subscriptionId], references: [id])
+  members      FamilyMember[]
+
+  @@map("family_groups")
+}
+
+model FamilyMember {
+  id            String       @id @default(uuid()) @db.Uuid
+  familyGroupId String       @map("family_group_id") @db.Uuid
+  customerId    String       @map("customer_id") @db.Uuid
+  lineId        String?      @map("line_id") @db.Uuid
+  role          String       @db.VarChar(10)
+  status        MemberStatus @default(INVITED)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  familyGroup FamilyGroup @relation(fields: [familyGroupId], references: [id])
+
+  @@unique([familyGroupId, customerId])
+  @@map("family_members")
+}
+
+model OutboxEvent {
+  id            String    @id @default(uuid()) @db.Uuid
+  aggregateId   String    @map("aggregate_id") @db.VarChar(255)
+  aggregateType String    @map("aggregate_type") @db.VarChar(100)
+  eventType     String    @map("event_type") @db.VarChar(200)
+  payload       Json      @db.JsonB
+  correlationId String?   @map("correlation_id") @db.VarChar(255)
+  causationId   String?   @map("causation_id") @db.VarChar(255)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  publishedAt   DateTime? @map("published_at")
+  status        String    @default("PENDING") @db.VarChar(20)
+  retryCount    Int       @default(0) @map("retry_count")
+
+  @@index([status, createdAt])
+  @@map("outbox_events")
+}
+
+model ProcessedEvent {
+  eventId     String   @id @map("event_id") @db.VarChar(255)
+  eventType   String   @map("event_type") @db.VarChar(200)
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("processed_events")
+}

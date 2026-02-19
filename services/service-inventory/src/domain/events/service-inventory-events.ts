@@ -1,0 +1,17 @@
+export const SERVICE_INVENTORY_EVENTS = {
+  SUBSCRIPTION_CREATED: 'service-inventory.subscription.created',
+  SUBSCRIPTION_ACTIVATED: 'service-inventory.subscription.activated',
+  SUBSCRIPTION_SUSPENDED: 'service-inventory.subscription.suspended',
+  SUBSCRIPTION_REACTIVATED: 'service-inventory.subscription.reactivated',
+  SUBSCRIPTION_CANCELLED: 'service-inventory.subscription.cancelled',
+  LINE_ADDED: 'service-inventory.line.added',
+  LINE_ACTIVATED: 'service-inventory.line.activated',
+  LINE_SUSPENDED: 'service-inventory.line.suspended',
+  LINE_REACTIVATED: 'service-inventory.line.reactivated',
+  LINE_REMOVED: 'service-inventory.line.removed',
+  FAMILY_GROUP_CREATED: 'service-inventory.family-group.created',
+  FAMILY_MEMBER_INVITED: 'service-inventory.family-member.invited',
+  FAMILY_MEMBER_JOINED: 'service-inventory.family-member.joined',
+  FAMILY_MEMBER_REMOVED: 'service-inventory.family-member.removed',
+  ALL_LINES_SUSPENDED: 'service-inventory.all-lines-suspended',
+} as const;
