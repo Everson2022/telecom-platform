@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { SimImportBatchRepository } from '../../infrastructure/database/repositories/sim-import-batch.repository';
@@ -41,7 +41,7 @@ export class ImportSimBatchCommand {
   ) {}
 
   async execute(input: ImportSimBatchInput): Promise<SimImportBatchWithErrors> {
-    const batchId = uuidv4();
+    const batchId = uuidv7();
     const lines = input.csvContent
       .split('\n')
       .map((l) => l.trim())
@@ -79,7 +79,7 @@ export class ImportSimBatchCommand {
             }
             await tx.simCard.create({
               data: {
-                id: uuidv4(),
+                id: uuidv7(),
                 iccid: parsed.iccid,
                 imsi: parsed.imsi || null,
                 type: input.simType,
@@ -98,7 +98,7 @@ export class ImportSimBatchCommand {
             }
             await tx.simCard.create({
               data: {
-                id: uuidv4(),
+                id: uuidv7(),
                 iccid: parsed.iccid,
                 imsi: parsed.imsi || null,
                 type: input.simType,
@@ -115,7 +115,7 @@ export class ImportSimBatchCommand {
           errorCount++;
           await tx.simImportError.create({
             data: {
-              id: uuidv4(),
+              id: uuidv7(),
               batchId,
               rowNumber,
               iccid: columns[0] || null,

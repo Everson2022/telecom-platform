@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { LocalityRepository } from '../../infrastructure/database/repositories/locality.repository';
 import { LocalityRecord } from '../../domain/types';
@@ -46,7 +46,7 @@ export class CreateLocalityCommand {
           aggregateType: 'Locality',
           eventType: LOCALITY_EVENTS.LOCALITY_CREATED,
           payload: {
-            eventId: uuidv4(),
+            eventId: uuidv7(),
             localityId: locality.id,
             dddCode: locality.dddCode,
             city: locality.city,

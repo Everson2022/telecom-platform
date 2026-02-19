@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { OrderRepository } from '../../infrastructure/database/repositories/order.repository';
@@ -32,7 +32,7 @@ export class CreateOrderCommand {
   ) {}
 
   async execute(input: CreateOrderInput): Promise<string> {
-    const orderId = uuidv4();
+    const orderId = uuidv7();
     const currency = input.currency ?? 'BRL';
 
     await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
@@ -51,7 +51,7 @@ export class CreateOrderCommand {
       for (const item of input.items) {
         await tx.orderItem.create({
           data: {
-            id: uuidv4(),
+            id: uuidv7(),
             orderId,
             offerId: item.offerId,
             quantity: item.quantity,

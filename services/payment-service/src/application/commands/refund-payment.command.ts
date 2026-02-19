@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { PaymentTransactionRepository } from '../../infrastructure/database/repositories/payment-transaction.repository';
@@ -28,8 +28,8 @@ export class RefundPaymentCommand {
       );
     }
 
-    const refundId = uuidv4();
-    const gatewayTransactionId = uuidv4();
+    const refundId = uuidv7();
+    const gatewayTransactionId = uuidv7();
     let result!: PaymentTransactionRecord;
 
     await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {

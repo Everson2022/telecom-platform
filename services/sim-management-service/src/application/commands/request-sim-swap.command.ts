@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { SimCardRepository } from '../../infrastructure/database/repositories/sim-card.repository';
@@ -47,7 +47,7 @@ export class RequestSimSwapCommand {
       );
     }
 
-    const swapRequestId = uuidv4();
+    const swapRequestId = uuidv7();
 
     const result = await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
       const swapRequest = await tx.simSwapRequest.create({

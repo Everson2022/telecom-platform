@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 
 export interface DispatchResult {
   trackingCode: string;
@@ -10,7 +10,7 @@ export interface DispatchResult {
 export class FakeCarrierClient {
   async dispatchShipment(_iccid: string, _address: object): Promise<DispatchResult> {
     return {
-      trackingCode: `FAKE-${uuidv4().substring(0, 8).toUpperCase()}`,
+      trackingCode: `FAKE-${uuidv7().substring(0, 8).toUpperCase()}`,
       estimatedDeliveryDays: 5,
     };
   }

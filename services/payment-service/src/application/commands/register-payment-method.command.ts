@@ -1,5 +1,5 @@
 import { Injectable, ConflictException } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { PaymentMethodRepository } from '../../infrastructure/database/repositories/payment-method.repository';
@@ -24,7 +24,7 @@ export class RegisterPaymentMethodCommand {
       );
     }
 
-    const paymentMethodId = uuidv4();
+    const paymentMethodId = uuidv7();
 
     await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
       await tx.paymentMethod.create({

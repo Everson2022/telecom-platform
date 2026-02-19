@@ -1,5 +1,5 @@
 import { Injectable, ConflictException } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { PaymentMethodRepository } from '../../infrastructure/database/repositories/payment-method.repository';
@@ -44,7 +44,7 @@ export class ActivateRecurringBillingCommand {
       );
     }
 
-    const recurringBillingId = uuidv4();
+    const recurringBillingId = uuidv7();
     const nextBillingDate = computeNextBillingDate(dto.billingDay);
 
     await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {

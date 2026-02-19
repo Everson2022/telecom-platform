@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { RecurringBillingRepository } from '../../infrastructure/database/repositories/recurring-billing.repository';
@@ -28,7 +28,7 @@ export class ProcessRecurringBillingCommand {
       throw new RecurringBillingNotFoundException(recurringBillingId);
     }
 
-    const transactionId = uuidv4();
+    const transactionId = uuidv7();
     const idempotencyKey = `recurring:${recurringBillingId}:${billing.nextBillingDate.toISOString()}`;
 
     // Simulate gateway (approve by default)
@@ -47,7 +47,7 @@ export class ProcessRecurringBillingCommand {
             status: TransactionStatus.APPROVED,
             amountCents: billing.amountCents,
             currency: billing.currency,
-            gatewayTransactionId: uuidv4(),
+            gatewayTransactionId: uuidv7(),
             idempotencyKey,
           },
         });
