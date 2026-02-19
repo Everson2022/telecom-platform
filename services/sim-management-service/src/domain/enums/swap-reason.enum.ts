@@ -1,0 +1,6 @@
+export enum SwapReason {
+  LOST = 'LOST',
+  DAMAGED = 'DAMAGED',
+  UPGRADE = 'UPGRADE',
+  CUSTOMER_REQUEST = 'CUSTOMER_REQUEST',
+}

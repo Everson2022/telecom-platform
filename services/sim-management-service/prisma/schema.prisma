@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SimType {
+  PHYSICAL
+  ESIM
+}
+
+enum SimStatus {
+  AVAILABLE
+  RESERVED
+  ALLOCATED
+  ACTIVATED
+  SUSPENDED
+  DEACTIVATED
+  LOST
+  DAMAGED
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  COMPLETED_WITH_ERRORS
+  FAILED
+}
+
+enum SwapType {
+  PHYSICAL_TO_PHYSICAL
+  PHYSICAL_TO_ESIM
+  ESIM_TO_PHYSICAL
+  ESIM_TO_ESIM
+}
+
+enum SwapStatus {
+  REQUESTED
+  VALIDATING
+  OLD_SIM_DEACTIVATING
+  NEW_SIM_ACTIVATING
+  COMPLETED
+  FAILED
+}
+
+enum SwapReason {
+  LOST
+  DAMAGED
+  UPGRADE
+  CUSTOMER_REQUEST
+}
+
+model SimCard {
+  id                    String    @id @default(uuid()) @db.Uuid
+  iccid                 String    @unique @db.VarChar(20)
+  imsi                  String?   @unique @db.VarChar(15)
+  type                  SimType
+  status                SimStatus @default(AVAILABLE)
+  supplier              String    @db.VarChar(100)
+  importBatchId         String    @map("import_batch_id") @db.Uuid
+  allocatedToOrderId    String?   @map("allocated_to_order_id") @db.Uuid
+  allocatedToCustomerId String?   @map("allocated_to_customer_id") @db.Uuid
+  // Physical fields
+  formFactor            String?   @map("form_factor") @db.VarChar(10)
+  pin                   String?   @db.VarChar(255)
+  puk                   String?   @db.VarChar(255)
+  warehouseLocation     String?   @map("warehouse_location") @db.VarChar(100)
+  // eSIM fields
+  eid                   String?   @db.VarChar(32)
+  activationCode        String?   @map("activation_code") @db.Text
+  qrCodeData            String?   @map("qr_code_data") @db.Text
+  smdpAddress           String?   @map("smdp_address") @db.VarChar(255)
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  importBatch SimImportBatch @relation(fields: [importBatchId], references: [id])
+
+  @@index([status])
+  @@index([importBatchId])
+  @@index([allocatedToOrderId])
+  @@map("sim_cards")
+}
+
+model SimImportBatch {
+  id           String       @id @default(uuid()) @db.Uuid
+  supplier     String       @db.VarChar(100)
+  fileName     String       @map("file_name") @db.VarChar(255)
+  simType      SimType      @map("sim_type")
+  totalRecords Int          @default(0) @map("total_records")
+  successCount Int          @default(0) @map("success_count")
+  errorCount   Int          @default(0) @map("error_count")
+  status       ImportStatus @default(PENDING)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  simCards SimCard[]
+  errors   SimImportError[]
+
+  @@map("sim_import_batches")
+}
+
+model SimImportError {
+  id           String         @id @default(uuid()) @db.Uuid
+  batchId      String         @map("batch_id") @db.Uuid
+  rowNumber    Int            @map("row_number")
+  iccid        String?        @db.VarChar(20)
+  errorMessage String         @map("error_message") @db.Text
+
+  batch SimImportBatch @relation(fields: [batchId], references: [id])
+
+  @@index([batchId])
+  @@map("sim_import_errors")
+}
+
+model SimSwapRequest {
+  id            String     @id @default(uuid()) @db.Uuid
+  customerId    String     @map("customer_id") @db.Uuid
+  msisdn        String     @db.VarChar(20)
+  oldSimId      String     @map("old_sim_id") @db.Uuid
+  newSimId      String     @map("new_sim_id") @db.Uuid
+  swapType      SwapType   @map("swap_type")
+  status        SwapStatus @default(REQUESTED)
+  reason        SwapReason
+  orderId       String     @map("order_id") @db.Uuid
+  failureReason String?    @map("failure_reason") @db.Text
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  @@index([customerId])
+  @@index([orderId])
+  @@map("sim_swap_requests")
+}
+
+model OutboxEvent {
+  id            String    @id @default(uuid()) @db.Uuid
+  aggregateId   String    @map("aggregate_id") @db.VarChar(255)
+  aggregateType String    @map("aggregate_type") @db.VarChar(100)
+  eventType     String    @map("event_type") @db.VarChar(200)
+  payload       Json      @db.JsonB
+  correlationId String?   @map("correlation_id") @db.VarChar(255)
+  causationId   String?   @map("causation_id") @db.VarChar(255)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  publishedAt   DateTime? @map("published_at")
+  status        String    @default("PENDING") @db.VarChar(20)
+  retryCount    Int       @default(0) @map("retry_count")
+
+  @@index([status, createdAt])
+  @@map("outbox_events")
+}
+
+model ProcessedEvent {
+  eventId     String   @id @map("event_id") @db.VarChar(255)
+  eventType   String   @map("event_type") @db.VarChar(200)
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("processed_events")
+}

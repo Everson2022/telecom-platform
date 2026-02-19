@@ -29,6 +29,7 @@ Simulacao de uma plataforma real de telecom aderente ao **TM Forum Open Digital 
 | `catalog-service` | Product Catalog (TMF620) | :3002 | :50052 |
 | `order-service` | Product Ordering (TMF622) | :3003 | :50053 |
 | `payment-service` | Payment Management (TMF676/666) | :3004 | :50054 |
+| `sim-management-service` | Resource Inventory (TMF639) | :3005 | :50055 |
 
 ## Estrutura
 
@@ -37,10 +38,11 @@ telecom-platform/
 ├── packages/
 │   └── toolkit/           # @telecom/toolkit — biblioteca compartilhada entre servicos
 ├── services/
-│   ├── customer-service/  # Cadastro de clientes, documentos e enderecos
-│   ├── catalog-service/   # Planos, ofertas e precos por localidade
-│   ├── order-service/     # Pedidos de produto, orquestracao de Sagas
-│   └── payment-service/   # Pagamentos (cartao/PIX), recorrencia, historico
+│   ├── customer-service/        # Cadastro de clientes, documentos e enderecos
+│   ├── catalog-service/         # Planos, ofertas e precos por localidade
+│   ├── order-service/           # Pedidos de produto, orquestracao de Sagas
+│   ├── payment-service/         # Pagamentos (cartao/PIX), recorrencia, historico
+│   └── sim-management-service/  # Estoque de SIMs, alocacao, troca (swap)
 ├── docs/                  # PRDs com requisitos de cada dominio
 └── docker-compose.yml     # PostgreSQL + Kafka + Kafka UI
 ```
@@ -73,6 +75,7 @@ pnpm --filter customer-service dev
 pnpm --filter catalog-service dev
 pnpm --filter order-service dev
 pnpm --filter payment-service dev
+pnpm --filter sim-management-service dev
 ```
 
 Kafka UI disponivel em `http://localhost:8080`.
@@ -80,8 +83,9 @@ Kafka UI disponivel em `http://localhost:8080`.
 ## Testes
 
 ```bash
-pnpm --filter customer-service test   # 15 testes
-pnpm --filter catalog-service test    # 27 testes
-pnpm --filter order-service test      # 14 testes
-pnpm --filter payment-service test    # 22 testes
+pnpm --filter customer-service test        # 15 testes
+pnpm --filter catalog-service test         # 27 testes
+pnpm --filter order-service test           # 14 testes
+pnpm --filter payment-service test         # 22 testes
+pnpm --filter sim-management-service test  # 21 testes
 ```

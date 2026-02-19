@@ -28,7 +28,7 @@ telecom-platform/
 │   ├── catalog-service/      # Product Catalog (TMF620) — IMPLEMENTADO
 │   ├── order-service/        # Product Ordering (TMF622) — IMPLEMENTADO
 │   ├── payment-service/      # Payment Management (TMF676/666) — IMPLEMENTADO
-│   ├── sim-management-service/ # (futuro)
+│   ├── sim-management-service/ # Resource Inventory (TMF639) — IMPLEMENTADO
 │   ├── activation-service/   # (futuro)
 │   ├── service-inventory/    # (futuro)
 │   ├── billing-service/      # (futuro)
