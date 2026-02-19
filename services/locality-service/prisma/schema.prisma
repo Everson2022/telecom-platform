@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LocalityStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Locality {
+  id          String         @id @default(uuid()) @db.Uuid
+  dddCode     String         @map("ddd_code") @db.VarChar(3)
+  city        String         @db.VarChar(100)
+  state       String         @db.VarChar(2)
+  region      String         @db.VarChar(50)
+  ibgeCode    String         @unique @map("ibge_code") @db.VarChar(10)
+  hasCoverage Boolean        @default(false) @map("has_coverage")
+  status      LocalityStatus @default(ACTIVE)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  @@index([dddCode])
+  @@index([state])
+  @@map("localities")
+}
+
+model OutboxEvent {
+  id            String    @id @default(uuid()) @db.Uuid
+  aggregateId   String    @map("aggregate_id") @db.VarChar(255)
+  aggregateType String    @map("aggregate_type") @db.VarChar(100)
+  eventType     String    @map("event_type") @db.VarChar(200)
+  payload       Json      @db.JsonB
+  correlationId String?   @map("correlation_id") @db.VarChar(255)
+  causationId   String?   @map("causation_id") @db.VarChar(255)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  publishedAt   DateTime? @map("published_at")
+  status        String    @default("PENDING") @db.VarChar(20)
+  retryCount    Int       @default(0) @map("retry_count")
+
+  @@index([status, createdAt])
+  @@map("outbox_events")
+}
+
+model ProcessedEvent {
+  eventId     String   @id @map("event_id") @db.VarChar(255)
+  eventType   String   @map("event_type") @db.VarChar(200)
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("processed_events")
+}

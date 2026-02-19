@@ -58,5 +58,206 @@ services:
     ports:
       - "8080:8080"
 
+  # ─── Microsservicos de Dominio ───────────────────────────
+  customer-service:
+    build:
+      context: .
+      dockerfile: services/customer-service/Dockerfile
+    container_name: telecom-customer-service
+    environment:
+      PORT: 3001
+      GRPC_PORT: 50051
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/customer_service
+      KAFKA_BROKERS: kafka:9092
+    ports:
+      - "3001:3001"
+      - "50051:50051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  catalog-service:
+    build:
+      context: .
+      dockerfile: services/catalog-service/Dockerfile
+    container_name: telecom-catalog-service
+    environment:
+      PORT: 3002
+      GRPC_PORT: 50052
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/catalog_service
+      KAFKA_BROKERS: kafka:9092
+    ports:
+      - "3002:3002"
+      - "50052:50052"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  order-service:
+    build:
+      context: .
+      dockerfile: services/order-service/Dockerfile
+    container_name: telecom-order-service
+    environment:
+      PORT: 3003
+      GRPC_PORT: 50053
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/order_service
+      KAFKA_BROKERS: kafka:9092
+    ports:
+      - "3003:3003"
+      - "50053:50053"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: services/payment-service/Dockerfile
+    container_name: telecom-payment-service
+    environment:
+      PORT: 3004
+      GRPC_PORT: 50054
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/payment_service
+      KAFKA_BROKERS: kafka:9092
+    ports:
+      - "3004:3004"
+      - "50054:50054"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  sim-management-service:
+    build:
+      context: .
+      dockerfile: services/sim-management-service/Dockerfile
+    container_name: telecom-sim-management-service
+    environment:
+      PORT: 3005
+      GRPC_PORT: 50055
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/sim_management_service
+      KAFKA_BROKERS: kafka:9092
+    ports:
+      - "3005:3005"
+      - "50055:50055"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  activation-service:
+    build:
+      context: .
+      dockerfile: services/activation-service/Dockerfile
+    container_name: telecom-activation-service
+    environment:
+      PORT: 3006
+      GRPC_PORT: 50056
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/activation_service
+      KAFKA_BROKERS: kafka:9092
+    ports:
+      - "3006:3006"
+      - "50056:50056"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  service-inventory:
+    build:
+      context: .
+      dockerfile: services/service-inventory/Dockerfile
+    container_name: telecom-service-inventory
+    environment:
+      PORT: 3007
+      GRPC_PORT: 50057
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/service_inventory
+      KAFKA_BROKERS: kafka:9092
+    ports:
+      - "3007:3007"
+      - "50057:50057"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  logistics-service:
+    build:
+      context: .
+      dockerfile: services/logistics-service/Dockerfile
+    container_name: telecom-logistics-service
+    environment:
+      PORT: 3008
+      GRPC_PORT: 50058
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/logistics_service
+      KAFKA_BROKERS: kafka:9092
+    ports:
+      - "3008:3008"
+      - "50058:50058"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  billing-service:
+    build:
+      context: .
+      dockerfile: services/billing-service/Dockerfile
+    container_name: telecom-billing-service
+    environment:
+      PORT: 3009
+      GRPC_PORT: 50059
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/billing_service
+      KAFKA_BROKERS: kafka:9092
+    ports:
+      - "3009:3009"
+      - "50059:50059"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  locality-service:
+    build:
+      context: .
+      dockerfile: services/locality-service/Dockerfile
+    container_name: telecom-locality-service
+    environment:
+      PORT: 3010
+      GRPC_PORT: 50060
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/locality_service
+      KAFKA_BROKERS: kafka:9092
+    ports:
+      - "3010:3010"
+      - "50060:50060"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres_data:
