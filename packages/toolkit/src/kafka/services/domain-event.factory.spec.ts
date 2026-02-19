@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { DomainEventFactory } from './domain-event.factory';
 
 vi.mock('uuid', () => ({
-  v4: () => 'test-uuid-1234',
+  v7: () => 'test-uuid-1234',
 }));
 
 describe('DomainEventFactory', () => {

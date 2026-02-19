@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PlanNotFoundException, PlanNotActiveException } from '../../errors';
 import { Prisma } from '@prisma/client';
 import { PlanStatus, OfferStatus } from '../../domain/enums';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { PlanRepository } from '../../infrastructure/database/repositories/plan.repository';
@@ -29,7 +29,7 @@ export class CreateOfferCommand {
 
     const validFrom = new Date(dto.validFrom);
 
-    const offerId = uuidv4();
+    const offerId = uuidv7();
 
     await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
       await tx.offer.create({
@@ -49,7 +49,7 @@ export class CreateOfferCommand {
         for (const rule of dto.eligibilityRules) {
           await tx.eligibilityRule.create({
             data: {
-              id: uuidv4(),
+              id: uuidv7(),
               offerId,
               ruleType: rule.ruleType,
               ruleValue: rule.ruleValue as Prisma.InputJsonValue,

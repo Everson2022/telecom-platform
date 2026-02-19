@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CustomerNotFoundException } from '../../errors';
 import { CustomerAddress } from '@prisma/client';
 import { OutboxRepository } from '@telecom/toolkit';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { CustomerRepository } from '../../infrastructure/database/repositories/customer.repository';
 import { CUSTOMER_EVENTS } from '../../domain/events/customer-events';
@@ -23,7 +23,7 @@ export class AddAddressCommand {
       throw new CustomerNotFoundException(customerId);
     }
 
-    const addressId = uuidv4();
+    const addressId = uuidv7();
 
     return this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
       const address = await tx.customerAddress.create({

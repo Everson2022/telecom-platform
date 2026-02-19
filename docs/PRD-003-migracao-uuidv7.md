@@ -1,7 +1,7 @@
 # PRD-003 — Migração de UUIDv4 para UUIDv7
 
 **Data:** 2026-02-17
-**Status:** Proposto
+**Status:** CONCLUIDO — 2026-02-19
 **Pacotes afetados:** `@telecom/toolkit`, `catalog-service`, `customer-service`
 
 ---
@@ -165,11 +165,11 @@ compatível com qualquer validação `@IsUUID()` dos DTOs e com os campos `UUID`
 
 ## Critérios de Aceite
 
-- [ ] Nenhuma ocorrência de `uuidv4` ou `v4 as uuidv4` permanece nos 9 arquivos listados
-- [ ] Todos os testes do toolkit, customer-service e catalog-service passam sem alteração de comportamento
-- [ ] IDs gerados em runtime seguem o formato UUID padrão (36 chars, grupos separados por hífen)
-- [ ] Os primeiros 13 caracteres de IDs gerados em sequência são monotonicamente crescentes
-- [ ] CLAUDE.md atualizado com a decisão de usar UUIDv7
+- [x] Nenhuma ocorrência de `uuidv4` ou `v4 as uuidv4` permanece nos 9 arquivos listados
+- [x] Todos os testes do toolkit, customer-service e catalog-service passam sem alteração de comportamento
+- [x] IDs gerados em runtime seguem o formato UUID padrão (36 chars, grupos separados por hífen)
+- [x] Os primeiros 13 caracteres de IDs gerados em sequência são monotonicamente crescentes
+- [x] CLAUDE.md atualizado com a decisão de usar UUIDv7
 
 ---
 

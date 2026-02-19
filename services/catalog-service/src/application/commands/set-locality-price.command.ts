@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OfferNotFoundException, OfferNotActiveException } from '../../errors';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { OfferRepository } from '../../infrastructure/database/repositories/offer.repository';
@@ -54,7 +54,7 @@ export class SetLocalityPriceCommand {
       } else {
         await tx.priceLocality.create({
           data: {
-            id: uuidv4(),
+            id: uuidv7(),
             offerId,
             dddCode: dto.dddCode,
             city,

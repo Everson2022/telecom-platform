@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { PrismaTransaction } from './unit-of-work';
 import { OutboxStatus } from './outbox-status';
 
@@ -42,7 +42,7 @@ export interface OutboxPrismaClient {
 
 export class OutboxRepository {
   async create(tx: PrismaTransaction, params: CreateOutboxEventParams): Promise<string> {
-    const id = uuidv4();
+    const id = uuidv7();
     await tx.outboxEvent.create({
       data: {
         id,

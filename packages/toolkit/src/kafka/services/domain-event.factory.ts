@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { DomainEvent } from '../interfaces';
 
 export interface CreateDomainEventParams<T> {
@@ -15,7 +15,7 @@ export interface CreateDomainEventParams<T> {
 
 export class DomainEventFactory {
   static create<T>(params: CreateDomainEventParams<T>): DomainEvent<T> {
-    const eventId = uuidv4();
+    const eventId = uuidv7();
     return {
       eventId,
       eventType: params.eventType,
@@ -23,7 +23,7 @@ export class DomainEventFactory {
       aggregateType: params.aggregateType,
       version: params.version ?? 1,
       timestamp: new Date().toISOString(),
-      correlationId: params.correlationId ?? uuidv4(),
+      correlationId: params.correlationId ?? uuidv7(),
       causationId: params.causationId ?? eventId,
       source: params.source,
       payload: params.payload,

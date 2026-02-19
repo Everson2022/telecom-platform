@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PlanNameConflictException, InvalidMaxLinesException } from '../../errors';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { PlanRepository } from '../../infrastructure/database/repositories/plan.repository';
@@ -34,7 +34,7 @@ export class CreatePlanCommand {
       throw new InvalidMaxLinesException(dto.type, expectedMaxLines);
     }
 
-    const planId = uuidv4();
+    const planId = uuidv7();
     const maxLines = dto.maxLines ?? expectedMaxLines;
 
     await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
@@ -53,7 +53,7 @@ export class CreatePlanCommand {
         for (const feature of dto.features) {
           await tx.planFeature.create({
             data: {
-              id: uuidv4(),
+              id: uuidv7(),
               planId,
               name: feature.name,
               quota: feature.quota,

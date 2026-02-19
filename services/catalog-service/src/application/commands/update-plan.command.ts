@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PlanNotFoundException, PlanNotActiveException } from '../../errors';
 import { Prisma } from '@prisma/client';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { OutboxRepository } from '@telecom/toolkit/database';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { PlanRepository } from '../../infrastructure/database/repositories/plan.repository';
@@ -45,7 +45,7 @@ export class UpdatePlanCommand {
         for (const feature of dto.features) {
           await tx.planFeature.create({
             data: {
-              id: uuidv4(),
+              id: uuidv7(),
               planId: id,
               name: feature.name,
               quota: feature.quota,

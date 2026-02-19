@@ -55,6 +55,7 @@ telecom-platform/
 -   Sagas para fluxos distribuidos
 -   Retry + Dead Letter Queue
 -   Banco isolado por microsservico
+-   **UUIDs:** usar sempre `v7 as uuidv7` da lib `uuid` — nunca `v4` (PRD-003)
 
 ------------------------------------------------------------------------
 

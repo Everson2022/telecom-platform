@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CpfAlreadyRegisteredException, EmailAlreadyRegisteredException, CustomerRequiresDocumentException, CustomerRequiresAddressException, CustomerRequiresResidentialAddressException } from '../../errors';
 import { CPF, Email, PhoneNumber, OutboxRepository } from '@telecom/toolkit';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 import { PrismaService, PrismaTransactionClient } from '../../infrastructure/database/prisma.service';
 import { CustomerRepository } from '../../infrastructure/database/repositories/customer.repository';
 import { CUSTOMER_EVENTS } from '../../domain/events/customer-events';
@@ -45,7 +45,7 @@ export class RegisterCustomerCommand {
       throw new CustomerRequiresResidentialAddressException();
     }
 
-    const customerId = uuidv4();
+    const customerId = uuidv7();
 
     await this.prisma.$transaction(async (tx: PrismaTransactionClient) => {
       await tx.customer.create({
@@ -63,7 +63,7 @@ export class RegisterCustomerCommand {
       for (const doc of dto.documents) {
         await tx.customerDocument.create({
           data: {
-            id: uuidv4(),
+            id: uuidv7(),
             customerId,
             type: doc.type,
             number: doc.number,
@@ -77,7 +77,7 @@ export class RegisterCustomerCommand {
       for (const addr of dto.addresses) {
         await tx.customerAddress.create({
           data: {
-            id: uuidv4(),
+            id: uuidv7(),
             customerId,
             type: addr.type,
             zipCode: addr.zipCode,
